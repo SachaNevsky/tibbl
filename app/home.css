@@ -35,6 +35,8 @@
 .logo {
     height: clamp(2rem, 5vw, 3.5rem);
     width: auto;
+    max-width: 100%;
+    object-fit: contain;
 }
 
 .header-buttons {
@@ -188,9 +190,48 @@
     }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 650px) {
     .textbox-container {
         flex: 1;
+    }
+}
+
+@media (max-width: 465px) {
+    .header-button {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+        gap: 0.3rem;
+    }
+
+    .header-button i {
+        font-size: 1rem;
+    }
+
+    .logo {
+        height: auto;
+        max-height: 2rem;
+        max-width: 100%;
+        object-fit: contain;
+    }
+}
+
+@media (max-width: 400px) {
+    .logo-container {
+        display: none;
+    }
+
+    .header {
+        justify-content: center;
+    }
+
+    .header-buttons {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .header-button {
+        flex: 1;
+        justify-content: center;
     }
 }
 
