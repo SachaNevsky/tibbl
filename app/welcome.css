@@ -194,6 +194,10 @@
     .textbox-container {
         flex: 1;
     }
+
+    .header-button .fa-2xl {
+        font-size: 1.5rem;
+    }
 }
 
 @media (max-width: 465px) {
@@ -213,9 +217,13 @@
         max-width: 100%;
         object-fit: contain;
     }
+
+    .header-button .fa-2xl {
+        font-size: 1rem;
+    }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 407px) {
     .logo-container {
         display: none;
     }
@@ -261,4 +269,9 @@
     .output-textbox {
         border-width: 3px;
     }
+}
+
+.header-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }

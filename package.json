@@ -8,7 +8,8 @@
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build/client"
+    "deploy": "gh-pages -d build/client",
+    "push": "node scripts/push.js"
   },
   "homepage": "https://sachanevsky.github.io/tibbl",
   "dependencies": {
