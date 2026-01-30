@@ -119,6 +119,8 @@ export default function Home() {
 	useEffect(() => {
 		if (!cameraEnabled) return;
 
+		let cleanupFn: (() => void) | undefined;
+
 		const moveVideo = () => {
 			const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
 			const canvas = document.getElementById('video-canvas') as HTMLCanvasElement;
@@ -144,7 +146,28 @@ export default function Home() {
 				canvas.style.zIndex = '10';
 				canvas.style.display = 'block';
 
+				const resizeCanvas = () => {
+					canvas.width = 640;
+					canvas.height = 480;
+
+					console.log(`Canvas set to: ${canvas.width}x${canvas.height}`);
+				};
+
+				const onVideoLoad = () => {
+					resizeCanvas();
+				};
+
+				video.addEventListener('loadedmetadata', onVideoLoad);
+				video.addEventListener('playing', onVideoLoad);
+
+				resizeCanvas();
+
 				console.log('Video and canvas configured');
+
+				cleanupFn = () => {
+					video.removeEventListener('loadedmetadata', onVideoLoad);
+					video.removeEventListener('playing', onVideoLoad);
+				};
 			}
 		};
 
@@ -156,9 +179,13 @@ export default function Home() {
 			}
 		}, 100);
 
-		setTimeout(() => clearInterval(interval), 5000);
+		const timeout = setTimeout(() => clearInterval(interval), 5000);
 
-		return () => clearInterval(interval);
+		return () => {
+			clearInterval(interval);
+			clearTimeout(timeout);
+			if (cleanupFn) cleanupFn();
+		};
 	}, [cameraEnabled]);
 
 	useEffect(() => {
@@ -183,7 +210,59 @@ export default function Home() {
 				console.log("Loading Tangible.js");
 				const response = await fetch(`${GITHUB_BASE}/assets/js/tangible.js`);
 				const tangibleCode = await response.text();
-				const modifiedCode = tangibleCode.replace("export default class Tangible", "window.Tangible = class Tangible");
+
+				let modifiedCode = tangibleCode.replace("export default class Tangible", "window.Tangible = class Tangible");
+
+				modifiedCode = modifiedCode.replace(
+					/setupTangible\(\) \{[\s\S]*?setVideoFrameCallback\("video-canvas", function \(jsonString\) \{[\s\S]*?\}, this\);[\s\S]*?\}/,
+					`setupTangible() {
+        this.setVideoCanvasHeight('video-canvas');
+        let tangible = this;
+        
+        TopCodes.setVideoFrameCallback("video-canvas", function (jsonString) {
+            console.log("TopCodes callback triggered!");
+            
+            var canvas = document.querySelector("#video-canvas");
+            if (!canvas) {
+                console.error("Canvas not found in callback!");
+                return;
+            }
+            var ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error("Could not get context in callback!");
+                return;
+            }
+            
+            var json = JSON.parse(jsonString);
+            var topcodes = json.topcodes;
+            console.log("Topcodes detected:", topcodes.length, "Canvas:", canvas.width, canvas.height);
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
+            ctx.lineWidth = 10;
+            ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+            console.log("Red border drawn");
+            
+            ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+            for (let i = 0; i < topcodes.length; i++) {
+                console.log("Drawing topcode:", topcodes[i]);
+                ctx.beginPath();
+                ctx.arc(topcodes[i].x - (topcodes[i].radius/2), topcodes[i].y, topcodes[i].radius, 0, Math.PI * 2, true);
+                ctx.fill();
+                ctx.font = "26px Arial";
+                ctx.fillStyle = "rgba(255, 0, 0, 0.8)";
+                ctx.fillText(topcodes[i].code, topcodes[i].x - topcodes[i].radius, topcodes[i].y);
+                ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+            }
+            console.log("All topcodes drawn");
+            tangible.currentCodes = topcodes;
+            tangible.once = true;
+        }, this);
+        console.log("TopCodes callback registered");
+    }`
+				);
+
 				const script = document.createElement("script");
 				script.textContent = modifiedCode;
 				document.head.appendChild(script);
@@ -197,6 +276,22 @@ export default function Home() {
 
 					instance.setupTangible();
 					console.log("setupTangible called");
+
+					setTimeout(() => {
+						const testCanvas = document.getElementById('video-canvas') as HTMLCanvasElement;
+						if (testCanvas) {
+							const testCtx = testCanvas.getContext('2d');
+							if (testCtx) {
+								console.log("Manual test: Drawing blue rectangle on canvas");
+								testCtx.fillStyle = "rgba(0, 0, 255, 0.5)";
+								testCtx.fillRect(200, 200, 100, 100);
+							} else {
+								console.error("Manual test: Could not get canvas context");
+							}
+						} else {
+							console.error("Manual test: Canvas not found");
+						}
+					}, 1000);
 
 					preloadsWithGitHub(instance, "Numbers", 0);
 					preloadsWithGitHub(instance, "Notifications", 1);
@@ -438,7 +533,6 @@ export default function Home() {
 				</nav>
 			</header>
 
-			{/* Camera section - only show when camera is enabled */}
 			{cameraEnabled && (
 				<section className="camera-section" role="region" aria-label="Camera view">
 					<div className="video-container">
@@ -447,21 +541,11 @@ export default function Home() {
 							width="640"
 							height="480"
 							aria-label="Code tile detection overlay"
-							style={{
-								position: 'absolute',
-								top: 0,
-								left: 0,
-								width: '100%',
-								height: '100%',
-								pointerEvents: 'none',
-								zIndex: 10
-							}}
 						/>
 					</div>
 				</section>
 			)}
 
-			{/* If camera is not enabled, still need canvas in DOM but hidden */}
 			{!cameraEnabled && (
 				<canvas id="video-canvas" width="640" height="480" style={{ display: 'none' }} />
 			)}
@@ -477,7 +561,7 @@ export default function Home() {
 						value={codeText}
 						onChange={(e) => setCodeText(e.target.value)}
 						className="output-textbox"
-						placeholder="THREAD 1\nLOOP 4 TIMES\nPLAY 5\nEND LOOP\nPLAY 7\n\nTHREAD 2\nDELAY 4\nLOOP 3 TIMES\nPLAY 8\nEND LOOP"
+						placeholder={`Thread 1\nLoop 4 times\nPlay 5\nEnd loop\nPlay 7\n\nThread 2\nDelay 4\nLoop 3 times\nPlay 8\nEnd loop`}
 						aria-label="Code output text area"
 					/>
 				</div>
