@@ -1,4 +1,4 @@
-/* ./app/home.css */
+/* ./app/welcome.css */
 
 * {
     box-sizing: border-box;
@@ -82,12 +82,28 @@
     background-color: #000000;
 }
 
-.camera-video {
+.video-container {
+    position: relative;
     width: 100%;
-    height: auto;
-    max-height: 50vh;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Styles for the video element created by topcodes.js */
+#video-canvas-video {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 50vh !important;
+    object-fit: contain !important;
+    display: block !important;
+    position: relative !important;
+}
+
+/* Canvas overlay styles */
+#video-canvas {
     object-fit: contain;
-    border-radius: 4px;
 }
 
 .output-section {
@@ -185,8 +201,8 @@
         font-size: 0.875rem;
     }
 
-    .camera-video {
-        max-height: 40vh;
+    #video-canvas-video {
+        max-height: 40vh !important;
     }
 }
 
