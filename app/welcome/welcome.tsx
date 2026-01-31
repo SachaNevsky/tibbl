@@ -343,6 +343,60 @@ export default function Home() {
 		}
 	};
 
+	const validateCode = (codeText: string): { valid: boolean; error?: string } => {
+		const lines = codeText.split('\n').map(line => line.trim().toLowerCase());
+		const stack: Array<{ type: string; index: number }> = [];
+		let variableSet = false;
+
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i];
+
+			if (line.startsWith('loop')) {
+				stack.push({ type: 'loop', index: i + 1 });
+			}
+			else if (line.startsWith('end loop') || line.startsWith('endloop')) {
+				if (stack.length === 0 || stack[stack.length - 1].type !== 'loop') {
+					return { valid: false, error: `Unexpected end loop at position ${i + 1}` };
+				}
+				stack.pop();
+			}
+			else if (line.startsWith('if')) {
+				stack.push({ type: 'if', index: i + 1 });
+			}
+			else if (line.startsWith('end if') || line.startsWith('endif')) {
+				if (stack.length === 0 || stack[stack.length - 1].type !== 'if') {
+					return { valid: false, error: `Unexpected end if at position ${i + 1}` };
+				}
+				stack.pop();
+			}
+			else if (line.startsWith('function')) {
+				stack.push({ type: 'function', index: i + 1 });
+			}
+			else if (line.startsWith('end function') || line.startsWith('endfunction')) {
+				if (stack.length === 0 || stack[stack.length - 1].type !== 'function') {
+					return { valid: false, error: `Unexpected end function at position ${i + 1}` };
+				}
+				stack.pop();
+			}
+			else if (line.startsWith('x =') || line.startsWith('x=')) {
+				variableSet = true;
+			}
+			else if ((line.startsWith('play x') || line.startsWith('if x')) && !variableSet) {
+				return { valid: false, error: `Variable used at ${i + 1} without being set.` };
+			}
+		}
+
+		if (stack.length > 0) {
+			const unclosed = stack[stack.length - 1];
+			return {
+				valid: false,
+				error: `Missing end tile for ${unclosed.type} in position ${unclosed.index}.`
+			};
+		}
+
+		return { valid: true };
+	};
+
 	const handlePlayStop = () => {
 		if (!tangibleInstance) {
 			console.error("Tangible instance not initialized");
@@ -371,6 +425,13 @@ export default function Home() {
 
 				setCodeText(cleanedCode);
 
+				const validation = validateCode(cleanedCode);
+				if (!validation.valid && validation.error) {
+					// console.error(validation.error);
+					tangibleInstance.readCode(validation.error);
+					return;
+				}
+
 				// console.log("Running scanned code:", cleanedCode);
 
 				if (cleanedCode && cleanedCode.trim()) {
@@ -391,6 +452,15 @@ export default function Home() {
 
 		const textCode = textareaRef.current?.value || codeText;
 
+		if (textCode && textCode.trim()) {
+			const validation = validateCode(textCode);
+			if (!validation.valid && validation.error) {
+				// console.error(validation.error);
+				tangibleInstance.readCode(validation.error);
+				return;
+			}
+		}
+
 		// console.log("Running code:", textCode);
 
 		if (textCode && textCode.trim()) {
@@ -406,6 +476,7 @@ export default function Home() {
 			}, 100);
 		} else {
 			// console.log("No code to run");
+			tangibleInstance.readCode("No code to run.");
 		}
 	};
 
@@ -462,6 +533,7 @@ export default function Home() {
 			setIsReading(true);
 		} else {
 			// console.log("No code to read");
+			tangibleInstance.readCode("No code to read.");
 		}
 	};
 
