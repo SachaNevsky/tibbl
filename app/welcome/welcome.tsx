@@ -107,7 +107,7 @@ export default function Home() {
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const preloadsWithGitHub = (instance: TangibleInstance, soundSet: string, t: number) => {
-		console.log(`Preloading sound set: ${soundSet} for thread ${t}`);
+		// console.log(`Preloading sound set: ${soundSet} for thread ${t}`);
 		const thread = new window.Howl({
 			src: [`${GITHUB_BASE}/assets/sound/${soundSet}.mp3`],
 			volume: 0.2,
@@ -127,7 +127,7 @@ export default function Home() {
 			const container = document.querySelector('.video-container');
 
 			if (video && canvas && container) {
-				console.log('Moving video to container and positioning canvas');
+				// console.log('Moving video to container and positioning canvas');
 				if (!container.contains(video)) {
 					container.insertBefore(video, container.firstChild);
 				}
@@ -150,7 +150,7 @@ export default function Home() {
 					canvas.width = 640;
 					canvas.height = 480;
 
-					console.log(`Canvas set to: ${canvas.width}x${canvas.height}`);
+					// console.log(`Canvas set to: ${canvas.width}x${canvas.height}`);
 				};
 
 				const onVideoLoad = () => {
@@ -162,7 +162,7 @@ export default function Home() {
 
 				resizeCanvas();
 
-				console.log('Video and canvas configured');
+				// console.log('Video and canvas configured');
 
 				cleanupFn = () => {
 					video.removeEventListener('loadedmetadata', onVideoLoad);
@@ -191,23 +191,23 @@ export default function Home() {
 	useEffect(() => {
 		const loadScripts = async () => {
 			try {
-				console.log("Loading Howler.js");
+				// console.log("Loading Howler.js");
 				const howlerResponse = await fetch(`${GITHUB_BASE}/assets/js/howler.js`);
 				const howlerCode = await howlerResponse.text();
 				const howlerScript = document.createElement("script");
 				howlerScript.textContent = howlerCode;
 				document.head.appendChild(howlerScript);
-				console.log("Howler.js loaded");
+				// console.log("Howler.js loaded");
 
-				console.log("Loading TopCodes.js");
+				// console.log("Loading TopCodes.js");
 				const topcodesResponse = await fetch(`${GITHUB_BASE}/assets/js/topcodes.js`);
 				const topcodesCode = await topcodesResponse.text();
 				const topcodesScript = document.createElement("script");
 				topcodesScript.textContent = topcodesCode;
 				document.head.appendChild(topcodesScript);
-				console.log("TopCodes.js loaded");
+				// console.log("TopCodes.js loaded");
 
-				console.log("Loading Tangible.js");
+				// console.log("Loading Tangible.js");
 				const response = await fetch(`${GITHUB_BASE}/assets/js/tangible.js`);
 				const tangibleCode = await response.text();
 
@@ -220,7 +220,6 @@ export default function Home() {
         let tangible = this;
         
         TopCodes.setVideoFrameCallback("video-canvas", function (jsonString) {
-            console.log("TopCodes callback triggered!");
             
             var canvas = document.querySelector("#video-canvas");
             if (!canvas) {
@@ -235,18 +234,15 @@ export default function Home() {
             
             var json = JSON.parse(jsonString);
             var topcodes = json.topcodes;
-            console.log("Topcodes detected:", topcodes.length, "Canvas:", canvas.width, canvas.height);
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
             ctx.lineWidth = 10;
             ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
-            console.log("Red border drawn");
             
             ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
             for (let i = 0; i < topcodes.length; i++) {
-                console.log("Drawing topcode:", topcodes[i]);
                 ctx.beginPath();
                 ctx.arc(topcodes[i].x - (topcodes[i].radius/2), topcodes[i].y, topcodes[i].radius, 0, Math.PI * 2, true);
                 ctx.fill();
@@ -255,34 +251,32 @@ export default function Home() {
                 ctx.fillText(topcodes[i].code, topcodes[i].x - topcodes[i].radius, topcodes[i].y);
                 ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
             }
-            console.log("All topcodes drawn");
             tangible.currentCodes = topcodes;
             tangible.once = true;
         }, this);
-        console.log("TopCodes callback registered");
     }`
 				);
 
 				const script = document.createElement("script");
 				script.textContent = modifiedCode;
 				document.head.appendChild(script);
-				console.log("Tangible.js loaded");
+				// console.log("Tangible.js loaded");
 
 				await new Promise(resolve => setTimeout(resolve, 200));
 
 				if (window.Tangible) {
-					console.log("Creating Tangible instance");
+					// console.log("Creating Tangible instance");
 					const instance = new window.Tangible();
 
 					instance.setupTangible();
-					console.log("setupTangible called");
+					// console.log("setupTangible called");
 
 					setTimeout(() => {
 						const testCanvas = document.getElementById('video-canvas') as HTMLCanvasElement;
 						if (testCanvas) {
 							const testCtx = testCanvas.getContext('2d');
 							if (testCtx) {
-								console.log("Manual test: Drawing blue rectangle on canvas");
+								// console.log("Manual test: Drawing blue rectangle on canvas");
 								testCtx.fillStyle = "rgba(0, 0, 255, 0.5)";
 								testCtx.fillRect(200, 200, 100, 100);
 							} else {
@@ -320,7 +314,7 @@ export default function Home() {
 		}
 
 		const newCameraState = !cameraEnabled;
-		console.log("Toggling camera to:", newCameraState);
+		// console.log("Toggling camera to:", newCameraState);
 
 		tangibleInstance.cameraStatus = newCameraState;
 
@@ -330,7 +324,7 @@ export default function Home() {
 			if (!newCameraState) {
 				setTimeout(() => {
 					delete window.TopCodes._mediaStreams["video-canvas"];
-					console.log("Deleted mediaStream reference to allow reinitialization");
+					// console.log("Deleted mediaStream reference to allow reinitialization");
 				}, 100);
 			}
 		}
@@ -339,7 +333,7 @@ export default function Home() {
 	};
 
 	const handleSoundSetChange = (threadIndex: number, soundSet: string) => {
-		console.log(`Changing thread ${threadIndex} to sound set: ${soundSet}`);
+		// console.log(`Changing thread ${threadIndex} to sound set: ${soundSet}`);
 		const newSoundSets = [...soundSets];
 		newSoundSets[threadIndex] = soundSet;
 		setSoundSets(newSoundSets);
@@ -356,24 +350,28 @@ export default function Home() {
 		}
 
 		if (tangibleInstance.isAudioPlaying()) {
-			console.log("Stopping audio");
+			// console.log("Stopping audio");
 			tangibleInstance.stopAllSounds();
 			setIsPlaying(false);
 			return;
 		}
 
 		if (cameraEnabled) {
-			console.log("Camera enabled, scanning code");
+			// console.log("Camera enabled, scanning code");
 			const scannedCode = tangibleInstance.scanCode();
-			console.log("Scanned code:", scannedCode);
+			// console.log("Scanned code:", scannedCode);
 
 			if (scannedCode) {
 				const cleanedCode = scannedCode
 					.replace(/<br\/>/g, '\n')
-					.replace(/,\s*X:\[object Object\]/g, '');
+					.replace(/,\s*X:\[object Object\]/g, '')
+					.toLowerCase()
+					.replace(/(^|\n)([a-z])/g, (_, prefix, char) => prefix + char.toUpperCase())
+					.replace(/x/g, 'X');
+
 				setCodeText(cleanedCode);
 
-				console.log("Running scanned code:", cleanedCode);
+				// console.log("Running scanned code:", cleanedCode);
 
 				if (cleanedCode && cleanedCode.trim()) {
 					tangibleInstance.codeThreads = [[], [], []];
@@ -393,7 +391,7 @@ export default function Home() {
 
 		const textCode = textareaRef.current?.value || codeText;
 
-		console.log("Running code:", textCode);
+		// console.log("Running code:", textCode);
 
 		if (textCode && textCode.trim()) {
 			tangibleInstance.codeThreads = [[], [], []];
@@ -407,7 +405,7 @@ export default function Home() {
 				}
 			}, 100);
 		} else {
-			console.log("No code to run");
+			// console.log("No code to run");
 		}
 	};
 
@@ -418,30 +416,34 @@ export default function Home() {
 		}
 
 		if (tangibleInstance.synthesis.speaking) {
-			console.log("Stopping speech synthesis");
+			// console.log("Stopping speech synthesis");
 			tangibleInstance.synthesis.cancel();
 			setIsReading(false);
 			return;
 		}
 
 		if (tangibleInstance.isAudioPlaying()) {
-			console.log("Stopping audio");
+			// console.log("Stopping audio");
 			tangibleInstance.stopAllSounds();
 			return;
 		}
 
 		if (cameraEnabled) {
-			console.log("Camera enabled, scanning code for reading");
+			// console.log("Camera enabled, scanning code for reading");
 			const scannedCode = tangibleInstance.scanCode();
-			console.log("Scanned code:", scannedCode);
+			// console.log("Scanned code:", scannedCode);
 
 			if (scannedCode) {
 				const cleanedCode = scannedCode
 					.replace(/<br\/>/g, '\n')
-					.replace(/,\s*X:\[object Object\]/g, '');
+					.replace(/,\s*X:\[object Object\]/g, '')
+					.toLowerCase()
+					.replace(/(^|\n)([a-z])/g, (_, prefix, char) => prefix + char.toUpperCase())
+					.replace(/x/g, 'X');
+
 				setCodeText(cleanedCode);
 
-				console.log("Reading scanned code:", cleanedCode);
+				// console.log("Reading scanned code:", cleanedCode);
 
 				if (cleanedCode && cleanedCode.trim()) {
 					tangibleInstance.readCode(cleanedCode);
@@ -453,13 +455,13 @@ export default function Home() {
 
 		const textCode = textareaRef.current?.value || codeText;
 
-		console.log("Reading code:", textCode);
+		// console.log("Reading code:", textCode);
 
 		if (textCode && textCode.trim()) {
 			tangibleInstance.readCode(textCode);
 			setIsReading(true);
 		} else {
-			console.log("No code to read");
+			// console.log("No code to read");
 		}
 	};
 
