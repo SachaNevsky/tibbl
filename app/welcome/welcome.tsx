@@ -61,7 +61,7 @@ export default function Home() {
 		setIsReading
 	);
 
-	useTouchGestures(handlePlayStop, [tangibleInstance, cameraEnabled, codeText]);
+	useTouchGestures(handlePlayStop, cameraEnabled, tangibleInstance, [tangibleInstance, cameraEnabled, codeText]);
 
 	const toggleCamera = () => {
 		if (!tangibleInstance) {
