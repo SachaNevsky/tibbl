@@ -3,9 +3,13 @@
 import { useEffect } from "react";
 import type { TangibleInstance } from "../types";
 
+let ongoingCountdown = false;
+let countdownTimeouts: NodeJS.Timeout[] = [];
+
 /**
  * Custom hook that detects three-finger touch gestures and triggers a callback.
  * When camera is enabled, initiates a 3-second countdown before executing the callback.
+ * Prevents queuing by cancelling any ongoing countdown before starting a new one.
  * 
  * @param onTripleTouch - Callback function to execute on three-finger touch
  * @param cameraEnabled - Whether the camera is currently enabled
@@ -19,24 +23,47 @@ export function useTouchGestures(
     dependencies: unknown[]
 ): void {
     useEffect(() => {
-        let countdownTimeout: NodeJS.Timeout | null = null;
-
         const handleTouch = (e: TouchEvent) => {
             if (e.touches.length === 3) {
                 e.preventDefault();
 
+                if (ongoingCountdown) {
+                    countdownTimeouts.forEach(timeout => clearTimeout(timeout));
+                    countdownTimeouts = [];
+                    if (tangibleInstance) {
+                        tangibleInstance.synthesis.cancel();
+                    }
+                    ongoingCountdown = false;
+                }
+
                 if (cameraEnabled && tangibleInstance) {
+                    ongoingCountdown = true;
+
                     const countdown = async () => {
                         tangibleInstance.readCode("3");
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        const timeout1 = setTimeout(async () => {
+                            if (!ongoingCountdown) return;
 
-                        tangibleInstance.readCode("2");
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                            tangibleInstance.readCode("2");
+                            const timeout2 = setTimeout(async () => {
+                                if (!ongoingCountdown) return;
 
-                        tangibleInstance.readCode("1");
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                                tangibleInstance.readCode("1");
+                                const timeout3 = setTimeout(() => {
+                                    if (!ongoingCountdown) return;
 
-                        onTripleTouch();
+                                    ongoingCountdown = false;
+                                    countdownTimeouts = [];
+                                    onTripleTouch();
+                                }, 1000);
+
+                                countdownTimeouts.push(timeout3);
+                            }, 1000);
+
+                            countdownTimeouts.push(timeout2);
+                        }, 1000);
+
+                        countdownTimeouts.push(timeout1);
                     };
 
                     countdown();
@@ -50,9 +77,9 @@ export function useTouchGestures(
 
         return () => {
             document.removeEventListener("touchstart", handleTouch);
-            if (countdownTimeout) {
-                clearTimeout(countdownTimeout);
-            }
+            countdownTimeouts.forEach(timeout => clearTimeout(timeout));
+            countdownTimeouts = [];
+            ongoingCountdown = false;
         };
     }, dependencies);
 }

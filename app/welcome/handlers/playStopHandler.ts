@@ -4,9 +4,13 @@ import type { TangibleInstance } from "../types";
 import { cleanScannedCode } from "../utils/codeCleanup";
 import { validateCode } from "../utils/validateCode";
 
+let isExecuting = false;
+let audioCheckInterval: NodeJS.Timeout | null = null;
+
 /**
  * Creates a handler function for the play/stop button.
  * Handles code execution from camera or text input, with validation.
+ * Prevents queuing by cancelling any ongoing execution before starting a new one.
  * 
  * @param tangibleInstance - The Tangible instance for code execution
  * @param cameraEnabled - Whether camera scanning is enabled
@@ -30,11 +34,19 @@ export function createPlayStopHandler(
             return;
         }
 
-        if (tangibleInstance.isAudioPlaying()) {
+        if (audioCheckInterval) {
+            clearInterval(audioCheckInterval);
+            audioCheckInterval = null;
+        }
+
+        if (tangibleInstance.isAudioPlaying() || isExecuting) {
             tangibleInstance.stopAllSounds();
             setIsPlaying(false);
+            isExecuting = false;
             return;
         }
+
+        isExecuting = true;
 
         if (cameraEnabled) {
             const scannedCode = tangibleInstance.scanCode();
@@ -47,6 +59,7 @@ export function createPlayStopHandler(
                 const validation = validateCode(cleanedCode);
                 if (!validation.valid && validation.error) {
                     tangibleInstance.readCode(validation.error);
+                    isExecuting = false;
                     return;
                 }
 
@@ -55,15 +68,22 @@ export function createPlayStopHandler(
                     tangibleInstance.runTextCode(cleanedCode);
                     setIsPlaying(true);
 
-                    const checkAudio = setInterval(() => {
+                    audioCheckInterval = setInterval(() => {
                         if (!tangibleInstance.isAudioPlaying()) {
                             setIsPlaying(false);
-                            clearInterval(checkAudio);
+                            isExecuting = false;
+                            if (audioCheckInterval) {
+                                clearInterval(audioCheckInterval);
+                                audioCheckInterval = null;
+                            }
                         }
                     }, 100);
+                } else {
+                    isExecuting = false;
                 }
                 return;
             }
+            isExecuting = false;
         }
 
         const textCode = textareaRef.current?.value || codeText;
@@ -72,6 +92,7 @@ export function createPlayStopHandler(
             const validation = validateCode(textCode);
             if (!validation.valid && validation.error) {
                 tangibleInstance.readCode(validation.error);
+                isExecuting = false;
                 return;
             }
         }
@@ -81,14 +102,19 @@ export function createPlayStopHandler(
             tangibleInstance.runTextCode(textCode);
             setIsPlaying(true);
 
-            const checkAudio = setInterval(() => {
+            audioCheckInterval = setInterval(() => {
                 if (!tangibleInstance.isAudioPlaying()) {
                     setIsPlaying(false);
-                    clearInterval(checkAudio);
+                    isExecuting = false;
+                    if (audioCheckInterval) {
+                        clearInterval(audioCheckInterval);
+                        audioCheckInterval = null;
+                    }
                 }
             }, 100);
         } else {
             tangibleInstance.readCode("No code to run.");
+            isExecuting = false;
         }
     };
 }

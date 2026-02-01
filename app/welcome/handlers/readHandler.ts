@@ -3,9 +3,12 @@
 import type { TangibleInstance } from "../types";
 import { cleanScannedCode } from "../utils/codeCleanup";
 
+let isReading = false;
+
 /**
  * Creates a handler function for the read button.
  * Handles text-to-speech reading of code from camera or text input.
+ * Prevents queuing by cancelling any ongoing speech before starting a new one.
  * 
  * @param tangibleInstance - The Tangible instance for speech synthesis
  * @param cameraEnabled - Whether camera scanning is enabled
@@ -29,9 +32,10 @@ export function createReadHandler(
             return;
         }
 
-        if (tangibleInstance.synthesis.speaking) {
+        if (tangibleInstance.synthesis.speaking || isReading) {
             tangibleInstance.synthesis.cancel();
             setIsReading(false);
+            isReading = false;
             return;
         }
 
@@ -39,6 +43,8 @@ export function createReadHandler(
             tangibleInstance.stopAllSounds();
             return;
         }
+
+        isReading = true;
 
         if (cameraEnabled) {
             const scannedCode = tangibleInstance.scanCode();
@@ -51,9 +57,12 @@ export function createReadHandler(
                 if (cleanedCode && cleanedCode.trim()) {
                     tangibleInstance.readCode(cleanedCode);
                     setIsReading(true);
+                } else {
+                    isReading = false;
                 }
                 return;
             }
+            isReading = false;
         }
 
         const textCode = textareaRef.current?.value || codeText;
@@ -63,6 +72,7 @@ export function createReadHandler(
             setIsReading(true);
         } else {
             tangibleInstance.readCode("No code to read.");
+            isReading = false;
         }
     };
 }
