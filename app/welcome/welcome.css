@@ -1,4 +1,4 @@
-/* ./app/welcome.css */
+/* ./app/welcome/welcome.css */
 
 * {
     box-sizing: border-box;
@@ -91,19 +91,18 @@
     align-items: center;
 }
 
-/* Styles for the video element created by topcodes.js */
-#video-canvas-video {
-    width: 100% !important;
-    height: auto !important;
-    max-height: 50vh !important;
-    object-fit: contain !important;
-    display: block !important;
-    position: relative !important;
+/* Canvas displays the video feed + overlays */
+#video-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 50vh;
+    object-fit: contain;
 }
 
-/* Canvas overlay styles */
-#video-canvas {
-    object-fit: contain;
+/* Video element is hidden - only canvas is visible */
+#video-canvas-video {
+    display: none !important;
 }
 
 .output-section {
@@ -201,8 +200,8 @@
         font-size: 0.875rem;
     }
 
-    #video-canvas-video {
-        max-height: 40vh !important;
+    #video-canvas {
+        max-height: 40vh;
     }
 }
 

@@ -11,8 +11,9 @@ interface TopCode {
 }
 
 /**
- * Custom hook that sets up and manages the camera video canvas positioning and sizing.
- * Listens for TopCode detection events and draws overlay circles on our canvas.
+ * Custom hook that sets up and manages the camera video canvas.
+ * IMPORTANT: This draws the video feed to the canvas every frame (like the original TopCodes implementation).
+ * The video element stays hidden, only the canvas is visible.
  * 
  * @param cameraEnabled - Whether the camera is currently enabled
  */
@@ -23,30 +24,32 @@ export function useCameraSetup(cameraEnabled: boolean): void {
         let animationFrameId: number | null = null;
         let currentTopcodes: TopCode[] = [];
 
-        const drawOverlay = () => {
+        const drawVideoAndOverlay = () => {
             const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
             const canvas = document.getElementById('video-canvas') as HTMLCanvasElement;
 
             if (!video || !canvas) {
-                animationFrameId = requestAnimationFrame(drawOverlay);
+                animationFrameId = requestAnimationFrame(drawVideoAndOverlay);
                 return;
             }
 
             const ctx = canvas.getContext('2d');
             if (!ctx) {
-                animationFrameId = requestAnimationFrame(drawOverlay);
+                animationFrameId = requestAnimationFrame(drawVideoAndOverlay);
+                return;
+            }
+
+            if (video.readyState < 2) {
+                animationFrameId = requestAnimationFrame(drawVideoAndOverlay);
                 return;
             }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const videoWidth = video.videoWidth || 640;
-            const videoHeight = video.videoHeight || 480;
-            const canvasWidth = canvas.width;
-            const canvasHeight = canvas.height;
-
-            const scaleX = canvasWidth / 640;
-            const scaleY = canvasHeight / 480;
+            ctx.save();
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.restore();
 
             ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
             ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
@@ -54,24 +57,21 @@ export function useCameraSetup(cameraEnabled: boolean): void {
 
             for (let i = 0; i < currentTopcodes.length; i++) {
                 const topcode = currentTopcodes[i];
-                const scaledX = topcode.x * scaleX;
-                const scaledY = topcode.y * scaleY;
-                const scaledRadius = topcode.radius * Math.min(scaleX, scaleY);
 
                 ctx.beginPath();
-                ctx.arc(scaledX, scaledY, scaledRadius, 0, Math.PI * 2);
+                ctx.arc(topcode.x, topcode.y, topcode.radius, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.stroke();
 
-                ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-                ctx.font = "20px Arial";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText(topcode.code.toString(), scaledX, scaledY);
-                ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+                // ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+                // ctx.font = "20px Arial";
+                // ctx.textAlign = "center";
+                // ctx.textBaseline = "middle";
+                // ctx.fillText(topcode.code.toString(), topcode.x, topcode.y);
+                // ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
             }
 
-            animationFrameId = requestAnimationFrame(drawOverlay);
+            animationFrameId = requestAnimationFrame(drawVideoAndOverlay);
         };
 
         const handleTopcodesDetected = (event: Event) => {
@@ -79,58 +79,41 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             currentTopcodes = customEvent.detail.topcodes;
         };
 
-        const moveVideo = () => {
+        const setupCanvas = () => {
             const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
             const canvas = document.getElementById('video-canvas') as HTMLCanvasElement;
             const container = document.querySelector('.video-container');
 
             if (video && canvas && container) {
-                if (!container.contains(video)) {
-                    container.insertBefore(video, container.firstChild);
-                }
-                video.style.display = 'block';
-                video.style.width = '100%';
-                video.style.height = '100%';
-                video.style.objectFit = 'cover';
+                video.style.display = 'none';
 
                 if (!container.contains(canvas)) {
                     container.appendChild(canvas);
                 }
 
                 canvas.style.display = 'block';
-                canvas.style.position = 'absolute';
-                canvas.style.top = '0';
-                canvas.style.left = '0';
+                canvas.style.position = 'relative';
                 canvas.style.width = '100%';
-                canvas.style.height = '100%';
-                canvas.style.pointerEvents = 'none';
-                canvas.style.zIndex = '10';
+                canvas.style.height = 'auto';
+                canvas.style.maxHeight = '50vh';
+                canvas.style.objectFit = 'contain';
 
-                const updateCanvasSize = () => {
-                    const rect = video.getBoundingClientRect();
-                    canvas.width = rect.width;
-                    canvas.height = rect.height;
-                };
-
-                const onVideoLoad = () => {
-                    updateCanvasSize();
+                const onVideoReady = () => {
                     if (!animationFrameId) {
-                        drawOverlay();
+                        drawVideoAndOverlay();
                     }
                 };
 
-                video.addEventListener('loadedmetadata', onVideoLoad);
-                video.addEventListener('playing', onVideoLoad);
-                window.addEventListener('resize', updateCanvasSize);
+                video.addEventListener('loadedmetadata', onVideoReady);
+                video.addEventListener('playing', onVideoReady);
 
                 if (video.readyState >= 2) {
-                    onVideoLoad();
+                    onVideoReady();
                 }
 
                 return () => {
-                    video.removeEventListener('loadedmetadata', onVideoLoad);
-                    video.removeEventListener('playing', onVideoLoad);
-                    window.removeEventListener('resize', updateCanvasSize);
+                    video.removeEventListener('loadedmetadata', onVideoReady);
+                    video.removeEventListener('playing', onVideoReady);
                 };
             }
         };
@@ -138,7 +121,7 @@ export function useCameraSetup(cameraEnabled: boolean): void {
         const interval = setInterval(() => {
             const video = document.getElementById('video-canvas-video');
             if (video) {
-                moveVideo();
+                setupCanvas();
                 clearInterval(interval);
             }
         }, 100);
