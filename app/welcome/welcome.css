@@ -92,12 +92,17 @@
 }
 
 /* Canvas displays the video feed + overlays */
+/* CRITICAL: Internal canvas dimensions are 640x480, CSS scales for display */
 #video-canvas {
     display: block;
     width: 100%;
     height: auto;
     max-height: 50vh;
     object-fit: contain;
+    /* Ensure crisp rendering on high-DPI displays like iPad */
+    image-rendering: auto;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 /* Video element is hidden - only canvas is visible */
