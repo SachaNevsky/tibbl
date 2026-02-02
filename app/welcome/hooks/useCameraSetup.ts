@@ -107,6 +107,7 @@ export function useCameraSetup(cameraEnabled: boolean): void {
                 if (canvas.width !== videoWidth || canvas.height !== videoHeight) {
                     canvas.width = videoWidth;
                     canvas.height = videoHeight;
+                    console.log(`Canvas resized to match video: ${videoWidth}x${videoHeight}`);
                 }
 
                 if (!container.contains(canvas)) {
@@ -133,9 +134,22 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             }
         };
 
+        const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
+        const handleLoadedMetadata = () => {
+            console.log(`Video metadata loaded: ${video.videoWidth}x${video.videoHeight}`);
+            setupCanvas();
+        };
+
+        if (video) {
+            if (video.readyState >= 1) {
+                setupCanvas();
+            }
+            video.addEventListener('loadedmetadata', handleLoadedMetadata);
+        }
+
         const interval = setInterval(() => {
-            const video = document.getElementById('video-canvas-video');
-            if (video) {
+            const videoElement = document.getElementById('video-canvas-video') as HTMLVideoElement;
+            if (videoElement && videoElement.readyState >= 1) {
                 setupCanvas();
                 clearInterval(interval);
             }
@@ -159,6 +173,9 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             clearInterval(interval);
             clearTimeout(timeout);
             window.removeEventListener('topcodes-detected', handleTopcodesDetected);
+            if (video) {
+                video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+            }
             if (observer) {
                 observer.disconnect();
             }
