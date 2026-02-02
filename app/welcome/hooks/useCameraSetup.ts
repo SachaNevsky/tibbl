@@ -36,6 +36,24 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             const videoHeight = video.videoHeight;
             const isVideoPortrait = videoHeight > videoWidth;
 
+            const isVideoPortraitNow = videoHeight > videoWidth;
+            let expectedCanvasWidth: number;
+            let expectedCanvasHeight: number;
+
+            if (isVideoPortraitNow) {
+                expectedCanvasWidth = videoWidth;
+                expectedCanvasHeight = videoHeight;
+            } else {
+                expectedCanvasWidth = 640;
+                expectedCanvasHeight = 480;
+            }
+
+            if (canvas.width !== expectedCanvasWidth || canvas.height !== expectedCanvasHeight) {
+                canvas.width = expectedCanvasWidth;
+                canvas.height = expectedCanvasHeight;
+                console.log(`Canvas auto-resized during frame update: ${expectedCanvasWidth}x${expectedCanvasHeight}`);
+            }
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -157,12 +175,28 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             }
         };
 
+        const handleResize = () => {
+            console.log('Video resize event triggered');
+            setupCanvas();
+        };
+
         if (video) {
             if (video.readyState >= 1) {
                 setupCanvas();
             }
             video.addEventListener('loadedmetadata', handleLoadedMetadata);
+            video.addEventListener('resize', handleResize);
         }
+
+        const handleOrientationChange = () => {
+            console.log('Orientation change detected');
+            setTimeout(() => {
+                setupCanvas();
+            }, 100);
+        };
+
+        window.addEventListener('orientationchange', handleOrientationChange);
+        window.addEventListener('resize', handleOrientationChange);
 
         const interval = setInterval(() => {
             const videoElement = document.getElementById('video-canvas-video') as HTMLVideoElement;
@@ -190,8 +224,11 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             clearInterval(interval);
             clearTimeout(timeout);
             window.removeEventListener('topcodes-detected', handleTopcodesDetected);
+            window.removeEventListener('orientationchange', handleOrientationChange);
+            window.removeEventListener('resize', handleOrientationChange);
             if (video) {
                 video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                video.removeEventListener('resize', handleResize);
             }
             if (observer) {
                 observer.disconnect();
