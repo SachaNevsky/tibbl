@@ -25,6 +25,39 @@ const SOUND_SETS = [
 	{ value: "FurElise", label: "Fur Elise" }
 ];
 
+/**
+ * Initialize audio context for iOS devices.
+ * iOS requires user interaction before audio can play.
+ * This function unlocks audio by playing silence.
+ */
+const initializeAudioContext = () => {
+	if (typeof window !== 'undefined' && window.Howler) {
+		try {
+			const silentSound = new window.Howl({
+				src: ['data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA='],
+				volume: 0,
+				onload: () => {
+					silentSound.play();
+					silentSound.unload();
+				}
+			});
+		} catch (error) {
+			console.error("Failed to initialize audio context:", error);
+		}
+	}
+
+	if (typeof window !== 'undefined' && window.speechSynthesis) {
+		try {
+			const utterance = new SpeechSynthesisUtterance('');
+			utterance.volume = 0;
+			window.speechSynthesis.speak(utterance);
+			window.speechSynthesis.cancel();
+		} catch (error) {
+			console.error("Failed to initialize speech synthesis:", error);
+		}
+	}
+};
+
 export default function Home() {
 	const [cameraEnabled, setCameraEnabled] = useState(false);
 	const [codeText, setCodeText] = useState("");
@@ -34,6 +67,7 @@ export default function Home() {
 	const [isReading, setIsReading] = useState(false);
 	const [isPlaying, setIsPlaying] = useState(false);
 	const [rotation, setRotation] = useState(0);
+	const [audioInitialized, setAudioInitialized] = useState(false);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const preloadCallback = useCallback((instance: TangibleInstance, soundSet: string, threadIndex: number) => {
@@ -68,6 +102,11 @@ export default function Home() {
 		if (!tangibleInstance) {
 			console.error("Tangible instance not initialized");
 			return;
+		}
+
+		if (!audioInitialized) {
+			initializeAudioContext();
+			setAudioInitialized(true);
 		}
 
 		const newCameraState = !cameraEnabled;

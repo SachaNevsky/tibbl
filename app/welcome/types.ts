@@ -6,15 +6,18 @@ export interface HowlSprite {
 
 export interface HowlConfig {
     src: string[];
-    volume: number;
-    sprite: HowlSprite;
+    volume?: number;
+    sprite?: HowlSprite;
+    onload?: () => void;
+    onloaderror?: () => void;
 }
 
 export interface HowlInstance {
     stop: () => void;
     off: (event: string) => void;
-    play: (sprite: string) => void;
+    play: (sprite?: string) => void;
     on: (event: string, callback: () => void) => void;
+    unload: () => void;
     _sprite: HowlSprite;
     playing: () => boolean;
 }
