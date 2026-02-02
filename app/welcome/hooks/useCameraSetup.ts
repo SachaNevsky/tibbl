@@ -11,6 +11,58 @@ interface TopCode {
 }
 
 /**
+ * Sort the top codes `y` ascending and `x` descending (since video is mirrored).
+ * @param a - The first value to compare
+ * @param b - The second value to compare
+ * @return `0` if `a` and `b` are considered equal (same position);
+ * 
+ * `1` if `a` comes after `b` in the sorted array;
+ * 
+ * `-1` if `a` comes before `b` in the sorted array
+ */
+function sortTopCodeComparator(a: TopCode, b: TopCode): number {
+
+    if (Math.abs(a.y - b.y) <= 40) {
+        if (a.x == b.x) {
+            return 0;
+        }
+        if (a.x < b.x) {
+            return 1;
+        }
+        return -1;
+    }
+    if (a.y < b.y) {
+        return -1;
+    }
+    return 1;
+}
+
+/** Sort topCodes into a grid using `(x, y)` coordinates.
+ *
+ * @param topCodes - The topCodes to sort
+ * @return multi-dimensional grid array
+ */
+function sortTopCodesIntoGrid(topCodes: Array<TopCode>) {
+    topCodes.sort(sortTopCodeComparator);
+    let grid: Array<Array<TopCode>> = [];
+    let line = Array();
+    let currentY = -1;
+
+    for (let i = 0; i < topCodes.length; i++) {
+        if (currentY >= 0 && topCodes[i].y - currentY >= 40) {
+            grid.push(line);
+            line = Array();
+            currentY = topCodes[i].y;
+        } else if (currentY < 0) {
+            currentY = topCodes[i].y;
+        }
+        line.push(topCodes[i]);
+    }
+    grid.push(line);
+    return grid;
+}
+
+/**
  * Custom hook that sets up and manages the camera video canvas.
  * Draws the video feed to the canvas every frame and overlays TopCode detection circles.
  * 
@@ -22,7 +74,7 @@ export function useCameraSetup(cameraEnabled: boolean): void {
 
         const handleTopcodesDetected = (event: Event) => {
             const customEvent = event as CustomEvent<{ topcodes: TopCode[] }>;
-            const topcodes = customEvent.detail.topcodes;
+            const topcodes = sortTopCodesIntoGrid(customEvent.detail.topcodes);
 
             const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
             const canvas = document.getElementById('video-canvas') as HTMLCanvasElement;
@@ -56,57 +108,34 @@ export function useCameraSetup(cameraEnabled: boolean): void {
 
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
-            ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
-            ctx.lineWidth = 2;
+            ctx.fillStyle = "$00640080";
+            ctx.strokeStyle = "#006400";
+            ctx.lineWidth = 5;
+            let counter = 1;
 
             for (let i = 0; i < topcodes.length; i++) {
-                const topcode = topcodes[i];
+                for (let j = 0; j < topcodes[i].length; j++) {
+                    const line = topcodes[i];
+                    const topCode = line[j];
 
-                const transformedX = canvas.width - topcode.x;
-                const transformedY = topcode.y;
+                    const transformedX = canvas.width - topCode.x;
+                    const transformedY = topCode.y;
 
-                ctx.beginPath();
-                ctx.arc(transformedX, transformedY, topcode.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(transformedX, transformedY, topCode.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
 
-                // // Tile coordinates text in circles
-                // ctx.fillStyle = "rgba(255, 255, 255, 1)";
-                // ctx.font = "14px monospace";
-                // ctx.textAlign = "center";
-                // ctx.textBaseline = "middle";
-                // ctx.fillText(
-                //     `(${Math.round(transformedX)}, ${Math.round(transformedY)})`,
-                //     transformedX,
-                //     transformedY
-                // );
+                    ctx.fillStyle = "rgba(255, 255, 255, 1)";
+                    ctx.font = "900 28px monospace";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(`${counter}`, transformedX, transformedY);
 
-                ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+                    ctx.fillStyle = "#00640080";
+                    counter++;
+                }
             }
-
-            // // Debug statements in canvas
-            // ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
-            // ctx.fillRect(0, 0, 100, 44);
-            // ctx.fillStyle = "rgba(255, 255, 255, 1)";
-            // ctx.font = "bold 14px monospace";
-            // ctx.textAlign = "left";
-            // ctx.textBaseline = "middle";
-            // ctx.fillText(isVideoPortrait ? "Portrait" : "Landscape", 5, 10);
-            // ctx.fillText(`(${canvas.width} x ${canvas.height})`, 5, 30);
-            // ctx.fillStyle = "rgba(0, 100, 0, 0.8)";
-            // ctx.fillRect(0, canvas.height - 110, 180, 110);
-            // ctx.fillStyle = "rgba(255, 255, 255, 1)";
-            // ctx.font = "12px monospace";
-            // ctx.textAlign = "left";
-            // ctx.textBaseline = "top";
-            // ctx.fillText(`Video: ${videoWidth}x${videoHeight}`, 5, canvas.height - 105);
-            // ctx.fillText(`Canvas: ${canvas.width}x${canvas.height}`, 5, canvas.height - 90);
-            // ctx.fillText(`Aspect: ${(videoWidth / videoHeight).toFixed(2)}`, 5, canvas.height - 75);
-            // ctx.fillText(`TopCodes: ${topcodes.length}`, 5, canvas.height - 60);
-            // ctx.fillText(`Browser: ${navigator.userAgent.includes('Safari') ? 'Safari' : navigator.userAgent.includes('Chrome') ? 'Chrome' : navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Other'}`, 5, canvas.height - 45);
-            // ctx.fillText(`Platform: ${navigator.platform}`, 5, canvas.height - 30);
-            // ctx.fillText(`Ready: ${video.readyState}/4`, 5, canvas.height - 15);
         };
 
         const setupCanvas = () => {
