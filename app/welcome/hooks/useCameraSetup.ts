@@ -78,7 +78,7 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             ctx.fillText(`(${canvas.width} x ${canvas.height})`, 5, 30);
 
             ctx.fillStyle = "rgba(0, 100, 0, 0.8)";
-            ctx.fillRect(0, canvas.height - 110, 140, 110);
+            ctx.fillRect(0, canvas.height - 110, 180, 110);
 
             ctx.fillStyle = "rgba(255, 255, 255, 1)";
             ctx.font = "12px monospace";
@@ -101,9 +101,12 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             if (video && canvas && container) {
                 video.style.display = 'none';
 
-                if (canvas.width !== 640 || canvas.height !== 480) {
-                    canvas.width = 640;
-                    canvas.height = 480;
+                const videoWidth = video.videoWidth || 640;
+                const videoHeight = video.videoHeight || 480;
+
+                if (canvas.width !== videoWidth || canvas.height !== videoHeight) {
+                    canvas.width = videoWidth;
+                    canvas.height = videoHeight;
                 }
 
                 if (!container.contains(canvas)) {
