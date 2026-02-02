@@ -10,6 +10,12 @@ interface TopCode {
     angle: number;
 }
 
+/**
+ * Custom hook that sets up and manages the camera video canvas.
+ * Draws the video feed to the canvas every frame and overlays TopCode detection circles.
+ * 
+ * @param cameraEnabled - Whether the camera is currently enabled
+ */
 export function useCameraSetup(cameraEnabled: boolean): void {
     useEffect(() => {
         if (!cameraEnabled) return;
@@ -26,10 +32,24 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
 
+            const videoWidth = video.videoWidth;
+            const videoHeight = video.videoHeight;
+            const isVideoPortrait = videoHeight > videoWidth;
+
             ctx.save();
-            ctx.translate(canvas.width, 0);
-            ctx.scale(-1, 1);
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            if (isVideoPortrait) {
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.scale(-1, 1);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            }
+
             ctx.restore();
 
             ctx.fillStyle = "rgba(255, 0, 0, 0.3)";

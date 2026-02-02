@@ -21,7 +21,7 @@ export function CameraSection({ cameraEnabled }: CameraSectionProps) {
                             id="video-canvas"
                             width="640"
                             height="480"
-                            aria-label="Code tile detection overlay"
+                            aria-label="Camera view and code tile detection overlay"
                         />
                     </div>
                 </section>
