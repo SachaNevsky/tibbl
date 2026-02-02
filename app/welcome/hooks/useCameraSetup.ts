@@ -104,10 +104,25 @@ export function useCameraSetup(cameraEnabled: boolean): void {
                 const videoWidth = video.videoWidth || 640;
                 const videoHeight = video.videoHeight || 480;
 
-                if (canvas.width !== videoWidth || canvas.height !== videoHeight) {
-                    canvas.width = videoWidth;
-                    canvas.height = videoHeight;
-                    console.log(`Canvas resized to match video: ${videoWidth}x${videoHeight}`);
+                const isVideoPortrait = videoHeight > videoWidth;
+
+                let targetWidth: number;
+                let targetHeight: number;
+
+                if (isVideoPortrait) {
+                    targetWidth = videoWidth;
+                    targetHeight = videoHeight;
+                    console.log(`Portrait mode detected: Using video dimensions ${targetWidth}x${targetHeight}`);
+                } else {
+                    targetWidth = 640;
+                    targetHeight = 480;
+                    console.log(`Landscape mode detected: Using fixed dimensions ${targetWidth}x${targetHeight}`);
+                }
+
+                if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+                    canvas.width = targetWidth;
+                    canvas.height = targetHeight;
+                    console.log(`Canvas resized to ${targetWidth}x${targetHeight}`);
                 }
 
                 if (!container.contains(canvas)) {
@@ -136,8 +151,10 @@ export function useCameraSetup(cameraEnabled: boolean): void {
 
         const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
         const handleLoadedMetadata = () => {
-            console.log(`Video metadata loaded: ${video.videoWidth}x${video.videoHeight}`);
-            setupCanvas();
+            if (video) {
+                console.log(`Video metadata loaded: ${video.videoWidth}x${video.videoHeight}`);
+                setupCanvas();
+            }
         };
 
         if (video) {
