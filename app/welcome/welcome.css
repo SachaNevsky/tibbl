@@ -86,26 +86,73 @@
     position: relative;
     width: 100%;
     max-width: 100%;
+    max-height: 50vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    aspect-ratio: 4 / 3;
 }
 
-/* Canvas displays the video feed + overlays */
-/* CRITICAL: Internal canvas dimensions are 640x480, CSS scales for display */
+.video-container:has(#video-canvas.rotated-sideways) {
+    height: fit-content;
+    max-height: 50vh;
+    aspect-ratio: 3 / 4;
+}
+
+.rotate-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #215a7d;
+    border: 2px solid #215a7d;
+    border-radius: 50%;
+    width: clamp(2.5rem, 8vw, 3.5rem);
+    height: clamp(2.5rem, 8vw, 3.5rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    padding: 0;
+    z-index: 10;
+}
+
+.rotate-button:hover {
+    background-color: #215a7d;
+    color: #ffffff;
+    transform: rotate(90deg);
+}
+
+.rotate-button:active {
+    transform: rotate(90deg) scale(0.95);
+}
+
+.rotate-button:focus {
+    outline: 3px solid #215a7d;
+    outline-offset: 2px;
+}
+
 #video-canvas {
     display: block;
     width: 100%;
     height: auto;
     max-height: 50vh;
     object-fit: contain;
-    /* Ensure crisp rendering on high-DPI displays like iPad */
     image-rendering: auto;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    transition: transform 0.3s ease;
 }
 
-/* Video element is hidden - only canvas is visible */
+#video-canvas.rotated-sideways {
+    width: auto;
+    height: auto;
+    max-width: 50vh;
+    max-height: none;
+}
+
 #video-canvas-video {
     display: none !important;
 }
@@ -208,6 +255,16 @@
     #video-canvas {
         max-height: 40vh;
     }
+
+    #video-canvas.rotated-sideways {
+        max-width: 40vh;
+    }
+
+    .rotate-button {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1rem;
+    }
 }
 
 @media (max-width: 650px) {
@@ -240,6 +297,12 @@
 
     .header-button .fa-2xl {
         font-size: 1rem;
+    }
+
+    .rotate-button {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.875rem;
     }
 }
 
@@ -278,6 +341,22 @@
     .header-button:active {
         transform: none;
     }
+
+    .rotate-button {
+        transition: none;
+    }
+
+    .rotate-button:hover {
+        transform: none;
+    }
+
+    .rotate-button:active {
+        transform: none;
+    }
+
+    #video-canvas {
+        transition: none;
+    }
 }
 
 @media (prefers-contrast: high) {
@@ -287,6 +366,10 @@
 
     .dropdown,
     .output-textbox {
+        border-width: 3px;
+    }
+
+    .rotate-button {
         border-width: 3px;
     }
 }

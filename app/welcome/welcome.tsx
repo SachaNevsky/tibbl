@@ -33,6 +33,7 @@ export default function Home() {
 	const [tangibleInstance, setTangibleInstance] = useState<TangibleInstance | null>(null);
 	const [isReading, setIsReading] = useState(false);
 	const [isPlaying, setIsPlaying] = useState(false);
+	const [rotation, setRotation] = useState(0);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const preloadCallback = useCallback((instance: TangibleInstance, soundSet: string, threadIndex: number) => {
@@ -86,6 +87,10 @@ export default function Home() {
 		setCameraEnabled(newCameraState);
 	};
 
+	const handleRotate = () => {
+		setRotation((prevRotation) => (prevRotation + 90) % 360);
+	};
+
 	const handleSoundSetChange = (threadIndex: number, soundSet: string) => {
 		const newSoundSets = [...soundSets];
 		newSoundSets[threadIndex] = soundSet;
@@ -108,7 +113,11 @@ export default function Home() {
 				onPlayStop={handlePlayStop}
 				onRead={handleRead}
 			/>
-			<CameraSection cameraEnabled={cameraEnabled} />
+			<CameraSection
+				cameraEnabled={cameraEnabled}
+				rotation={rotation}
+				onRotate={handleRotate}
+			/>
 			<OutputSection
 				cameraEnabled={cameraEnabled}
 				codeText={codeText}
