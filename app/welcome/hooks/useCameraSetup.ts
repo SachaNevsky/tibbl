@@ -38,18 +38,7 @@ export function useCameraSetup(cameraEnabled: boolean): void {
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.save();
-
-            if (isVideoPortrait) {
-                ctx.translate(canvas.width / 2, canvas.height / 2);
-                ctx.rotate(-Math.PI / 2);
-                ctx.translate(-canvas.width / 2, -canvas.height / 2);
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            } else {
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            }
-
-            ctx.restore();
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
             ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
@@ -58,13 +47,8 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             for (let i = 0; i < topcodes.length; i++) {
                 const topcode = topcodes[i];
 
-                let transformedX = canvas.width - topcode.x;
-                let transformedY = topcode.y;
-
-                if (isVideoPortrait) {
-                    transformedX = canvas.width - topcode.y;
-                    transformedY = canvas.width - topcode.x;
-                }
+                const transformedX = canvas.width - topcode.x;
+                const transformedY = topcode.y;
 
                 ctx.beginPath();
                 ctx.arc(transformedX, transformedY, topcode.radius, 0, Math.PI * 2);
@@ -84,13 +68,29 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             }
 
             ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
-            ctx.fillRect(0, 0, 20, 20);
+            ctx.fillRect(0, 0, 100, 44);
 
             ctx.fillStyle = "rgba(255, 255, 255, 1)";
             ctx.font = "bold 14px monospace";
-            ctx.textAlign = "center";
+            ctx.textAlign = "left";
             ctx.textBaseline = "middle";
-            ctx.fillText(isVideoPortrait ? "P" : "L", 10, 10);
+            ctx.fillText(isVideoPortrait ? "Portrait" : "Landscape", 5, 10);
+            ctx.fillText(`(${canvas.width} x ${canvas.height})`, 5, 30);
+
+            ctx.fillStyle = "rgba(0, 100, 0, 0.8)";
+            ctx.fillRect(0, canvas.height - 110, 140, 110);
+
+            ctx.fillStyle = "rgba(255, 255, 255, 1)";
+            ctx.font = "12px monospace";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "top";
+            ctx.fillText(`Video: ${videoWidth}x${videoHeight}`, 5, canvas.height - 105);
+            ctx.fillText(`Canvas: ${canvas.width}x${canvas.height}`, 5, canvas.height - 90);
+            ctx.fillText(`Aspect: ${(videoWidth / videoHeight).toFixed(2)}`, 5, canvas.height - 75);
+            ctx.fillText(`TopCodes: ${topcodes.length}`, 5, canvas.height - 60);
+            ctx.fillText(`Browser: ${navigator.userAgent.includes('Safari') ? 'Safari' : navigator.userAgent.includes('Chrome') ? 'Chrome' : navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Other'}`, 5, canvas.height - 45);
+            ctx.fillText(`Platform: ${navigator.platform}`, 5, canvas.height - 30);
+            ctx.fillText(`Ready: ${video.readyState}/4`, 5, canvas.height - 15);
         };
 
         const setupCanvas = () => {
