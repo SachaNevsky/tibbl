@@ -11,6 +11,7 @@ import { useTouchGestures } from "./hooks/useTouchGestures";
 import { createPlayStopHandler } from "./handlers/playStopHandler";
 import { createReadHandler } from "./handlers/readHandler";
 import { preloadSoundSet } from "./utils/preloadSoundSet";
+import { initializeAudioContext } from "./utils/initializeAudioContext";
 import type { TangibleInstance } from "./types";
 import "./welcome.css";
 
@@ -24,39 +25,6 @@ const SOUND_SETS = [
 	{ value: "OdeToJoy", label: "Ode to Joy" },
 	{ value: "FurElise", label: "Fur Elise" }
 ];
-
-/**
- * Initialize audio context for iOS devices.
- * iOS requires user interaction before audio can play.
- * This function unlocks audio by playing silence.
- */
-const initializeAudioContext = () => {
-	if (typeof window !== 'undefined' && window.Howler) {
-		try {
-			const silentSound = new window.Howl({
-				src: ['data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA='],
-				volume: 0,
-				onload: () => {
-					silentSound.play();
-					silentSound.unload();
-				}
-			});
-		} catch (error) {
-			console.error("Failed to initialize audio context:", error);
-		}
-	}
-
-	if (typeof window !== 'undefined' && window.speechSynthesis) {
-		try {
-			const utterance = new SpeechSynthesisUtterance('');
-			utterance.volume = 0;
-			window.speechSynthesis.speak(utterance);
-			window.speechSynthesis.cancel();
-		} catch (error) {
-			console.error("Failed to initialize speech synthesis:", error);
-		}
-	}
-};
 
 export default function Home() {
 	const [cameraEnabled, setCameraEnabled] = useState(false);
@@ -118,6 +86,11 @@ export default function Home() {
 
 			if (!newCameraState) {
 				setTimeout(() => {
+					const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
+					if (video) {
+						video.srcObject = null;
+						video.remove();
+					}
 					delete window.TopCodes._mediaStreams["video-canvas"];
 				}, 100);
 			}
