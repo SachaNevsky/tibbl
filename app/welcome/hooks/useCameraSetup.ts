@@ -36,11 +36,10 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             const videoHeight = video.videoHeight;
             const isVideoPortrait = videoHeight > videoWidth;
 
-            const isVideoPortraitNow = videoHeight > videoWidth;
             let expectedCanvasWidth: number;
             let expectedCanvasHeight: number;
 
-            if (isVideoPortraitNow) {
+            if (isVideoPortrait) {
                 expectedCanvasWidth = videoWidth;
                 expectedCanvasHeight = videoHeight;
             } else {
@@ -51,7 +50,6 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             if (canvas.width !== expectedCanvasWidth || canvas.height !== expectedCanvasHeight) {
                 canvas.width = expectedCanvasWidth;
                 canvas.height = expectedCanvasHeight;
-                console.log(`Canvas auto-resized during frame update: ${expectedCanvasWidth}x${expectedCanvasHeight}`);
             }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -73,42 +71,42 @@ export function useCameraSetup(cameraEnabled: boolean): void {
                 ctx.fill();
                 ctx.stroke();
 
-                ctx.fillStyle = "rgba(255, 255, 255, 1)";
-                ctx.font = "14px monospace";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText(
-                    `(${Math.round(transformedX)}, ${Math.round(transformedY)})`,
-                    transformedX,
-                    transformedY
-                );
+                // // Tile coordinates text in circles
+                // ctx.fillStyle = "rgba(255, 255, 255, 1)";
+                // ctx.font = "14px monospace";
+                // ctx.textAlign = "center";
+                // ctx.textBaseline = "middle";
+                // ctx.fillText(
+                //     `(${Math.round(transformedX)}, ${Math.round(transformedY)})`,
+                //     transformedX,
+                //     transformedY
+                // );
+
                 ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
             }
 
-            ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
-            ctx.fillRect(0, 0, 100, 44);
-
-            ctx.fillStyle = "rgba(255, 255, 255, 1)";
-            ctx.font = "bold 14px monospace";
-            ctx.textAlign = "left";
-            ctx.textBaseline = "middle";
-            ctx.fillText(isVideoPortrait ? "Portrait" : "Landscape", 5, 10);
-            ctx.fillText(`(${canvas.width} x ${canvas.height})`, 5, 30);
-
-            ctx.fillStyle = "rgba(0, 100, 0, 0.8)";
-            ctx.fillRect(0, canvas.height - 110, 180, 110);
-
-            ctx.fillStyle = "rgba(255, 255, 255, 1)";
-            ctx.font = "12px monospace";
-            ctx.textAlign = "left";
-            ctx.textBaseline = "top";
-            ctx.fillText(`Video: ${videoWidth}x${videoHeight}`, 5, canvas.height - 105);
-            ctx.fillText(`Canvas: ${canvas.width}x${canvas.height}`, 5, canvas.height - 90);
-            ctx.fillText(`Aspect: ${(videoWidth / videoHeight).toFixed(2)}`, 5, canvas.height - 75);
-            ctx.fillText(`TopCodes: ${topcodes.length}`, 5, canvas.height - 60);
-            ctx.fillText(`Browser: ${navigator.userAgent.includes('Safari') ? 'Safari' : navigator.userAgent.includes('Chrome') ? 'Chrome' : navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Other'}`, 5, canvas.height - 45);
-            ctx.fillText(`Platform: ${navigator.platform}`, 5, canvas.height - 30);
-            ctx.fillText(`Ready: ${video.readyState}/4`, 5, canvas.height - 15);
+            // // Debug statements in canvas
+            // ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
+            // ctx.fillRect(0, 0, 100, 44);
+            // ctx.fillStyle = "rgba(255, 255, 255, 1)";
+            // ctx.font = "bold 14px monospace";
+            // ctx.textAlign = "left";
+            // ctx.textBaseline = "middle";
+            // ctx.fillText(isVideoPortrait ? "Portrait" : "Landscape", 5, 10);
+            // ctx.fillText(`(${canvas.width} x ${canvas.height})`, 5, 30);
+            // ctx.fillStyle = "rgba(0, 100, 0, 0.8)";
+            // ctx.fillRect(0, canvas.height - 110, 180, 110);
+            // ctx.fillStyle = "rgba(255, 255, 255, 1)";
+            // ctx.font = "12px monospace";
+            // ctx.textAlign = "left";
+            // ctx.textBaseline = "top";
+            // ctx.fillText(`Video: ${videoWidth}x${videoHeight}`, 5, canvas.height - 105);
+            // ctx.fillText(`Canvas: ${canvas.width}x${canvas.height}`, 5, canvas.height - 90);
+            // ctx.fillText(`Aspect: ${(videoWidth / videoHeight).toFixed(2)}`, 5, canvas.height - 75);
+            // ctx.fillText(`TopCodes: ${topcodes.length}`, 5, canvas.height - 60);
+            // ctx.fillText(`Browser: ${navigator.userAgent.includes('Safari') ? 'Safari' : navigator.userAgent.includes('Chrome') ? 'Chrome' : navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Other'}`, 5, canvas.height - 45);
+            // ctx.fillText(`Platform: ${navigator.platform}`, 5, canvas.height - 30);
+            // ctx.fillText(`Ready: ${video.readyState}/4`, 5, canvas.height - 15);
         };
 
         const setupCanvas = () => {
@@ -130,17 +128,14 @@ export function useCameraSetup(cameraEnabled: boolean): void {
                 if (isVideoPortrait) {
                     targetWidth = videoWidth;
                     targetHeight = videoHeight;
-                    console.log(`Portrait mode detected: Using video dimensions ${targetWidth}x${targetHeight}`);
                 } else {
                     targetWidth = 640;
                     targetHeight = 480;
-                    console.log(`Landscape mode detected: Using fixed dimensions ${targetWidth}x${targetHeight}`);
                 }
 
                 if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
                     canvas.width = targetWidth;
                     canvas.height = targetHeight;
-                    console.log(`Canvas resized to ${targetWidth}x${targetHeight}`);
                 }
 
                 if (!container.contains(canvas)) {
@@ -170,13 +165,11 @@ export function useCameraSetup(cameraEnabled: boolean): void {
         const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
         const handleLoadedMetadata = () => {
             if (video) {
-                console.log(`Video metadata loaded: ${video.videoWidth}x${video.videoHeight}`);
                 setupCanvas();
             }
         };
 
         const handleResize = () => {
-            console.log('Video resize event triggered');
             setupCanvas();
         };
 
@@ -189,7 +182,6 @@ export function useCameraSetup(cameraEnabled: boolean): void {
         }
 
         const handleOrientationChange = () => {
-            console.log('Orientation change detected');
             setTimeout(() => {
                 setupCanvas();
             }, 100);
