@@ -36,6 +36,8 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             const videoHeight = video.videoHeight;
             const isVideoPortrait = videoHeight > videoWidth;
 
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
             ctx.save();
 
             if (isVideoPortrait) {
@@ -82,7 +84,13 @@ export function useCameraSetup(cameraEnabled: boolean): void {
             }
 
             ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
-            ctx.fillRect(0, 0, 10, 10);
+            ctx.fillRect(0, 0, 20, 20);
+
+            ctx.fillStyle = "rgba(255, 255, 255, 1)";
+            ctx.font = "bold 14px monospace";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(isVideoPortrait ? "P" : "L", 10, 10);
         };
 
         const setupCanvas = () => {
@@ -134,7 +142,6 @@ export function useCameraSetup(cameraEnabled: boolean): void {
 
         window.addEventListener('topcodes-detected', handleTopcodesDetected);
 
-        // Watch for class changes on the canvas to reapply styles when rotated
         const canvas = document.getElementById('video-canvas');
         let observer: MutationObserver | null = null;
 
