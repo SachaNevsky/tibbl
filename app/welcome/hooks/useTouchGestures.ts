@@ -1,11 +1,10 @@
 // ./app/welcome/hooks/useTouchGestures.ts
 
 import { useEffect } from "react";
-import type { HowlInstance, TangibleInstance } from "../types";
+import type { TangibleInstance } from "../types";
 
 let ongoingCountdown = false;
 let countdownTimeouts: NodeJS.Timeout[] = [];
-let countdownHowl: HowlInstance | null = null;
 
 /**
  * Cancels any ongoing countdown and clears all timeout timers.
@@ -16,12 +15,8 @@ export function cancelCountdown(tangibleInstance?: TangibleInstance | null): voi
     if (ongoingCountdown) {
         countdownTimeouts.forEach(timeout => clearTimeout(timeout));
         countdownTimeouts = [];
-        if (countdownHowl) {
-            countdownHowl.stop();
-            countdownHowl = null;
-        }
-        if (tangibleInstance) {
-            tangibleInstance.synthesis.cancel();
+        if (tangibleInstance && tangibleInstance.threads[0]) {
+            tangibleInstance.threads[0].stop();
         }
         ongoingCountdown = false;
     }
@@ -36,6 +31,8 @@ export function cancelCountdown(tangibleInstance?: TangibleInstance | null): voi
  * @param cameraEnabled - Whether the camera is currently enabled
  * @param tangibleInstance - The Tangible instance for text-to-speech countdown
  * @param githubBase - The base GitHub URL for loading sound files
+ * @param currentSoundSets - Array of current sound sets for each thread
+ * @param preloadSoundSet - Function to reload sound sets
  * @param dependencies - Dependency array for the effect
  */
 export function useTouchGestures(
@@ -43,6 +40,8 @@ export function useTouchGestures(
     cameraEnabled: boolean,
     tangibleInstance: TangibleInstance | null,
     githubBase: string,
+    currentSoundSets: string[],
+    preloadSoundSet: (instance: TangibleInstance, soundSet: string, threadIndex: number, githubBase: string) => void,
     dependencies: unknown[]
 ): void {
     useEffect(() => {
@@ -56,42 +55,58 @@ export function useTouchGestures(
                     ongoingCountdown = true;
 
                     const countdown = async () => {
-                        if (!countdownHowl) {
-                            countdownHowl = new window.Howl({
+                        // Save the original sound set for thread 0
+                        const originalSoundSet = currentSoundSets[0];
+
+                        // Temporarily load Numbers.mp3 into thread 0
+                        if (tangibleInstance.soundSets['Numbers']) {
+                            const numbersHowl = new window.Howl({
                                 src: [`${githubBase}/assets/sound/Numbers.mp3`],
                                 volume: 1.0,
                                 sprite: tangibleInstance.soundSets['Numbers']
                             });
-                        }
+                            tangibleInstance.threads[0] = numbersHowl;
 
-                        countdownHowl.play('3');
-                        const timeout1 = setTimeout(() => {
-                            if (!ongoingCountdown) return;
+                            // Play "3"
+                            numbersHowl.play('3');
 
-                            countdownHowl?.play('2');
-                            const timeout2 = setTimeout(() => {
+                            const timeout1 = setTimeout(() => {
                                 if (!ongoingCountdown) return;
 
-                                countdownHowl?.play('1');
-                                const timeout3 = setTimeout(() => {
+                                // Play "2"
+                                numbersHowl.play('2');
+
+                                const timeout2 = setTimeout(() => {
                                     if (!ongoingCountdown) return;
 
-                                    ongoingCountdown = false;
-                                    countdownTimeouts = [];
-                                    if (countdownHowl) {
-                                        countdownHowl = null;
-                                    }
+                                    // Play "1"
+                                    numbersHowl.play('1');
 
-                                    onTripleTouch();
+                                    const timeout3 = setTimeout(() => {
+                                        if (!ongoingCountdown) return;
+
+                                        // Stop the countdown audio
+                                        numbersHowl.stop();
+
+                                        // Reload the original sound set back into thread 0
+                                        preloadSoundSet(tangibleInstance, originalSoundSet, 0, githubBase);
+
+                                        // Add small delay for cleanup, then execute callback
+                                        setTimeout(() => {
+                                            ongoingCountdown = false;
+                                            countdownTimeouts = [];
+                                            onTripleTouch();
+                                        }, 100);
+                                    }, 1000);
+
+                                    countdownTimeouts.push(timeout3);
                                 }, 1000);
 
-                                countdownTimeouts.push(timeout3);
+                                countdownTimeouts.push(timeout2);
                             }, 1000);
 
-                            countdownTimeouts.push(timeout2);
-                        }, 1000);
-
-                        countdownTimeouts.push(timeout1);
+                            countdownTimeouts.push(timeout1);
+                        }
                     };
 
                     countdown();
@@ -107,10 +122,6 @@ export function useTouchGestures(
             document.removeEventListener("touchstart", handleTouch);
             countdownTimeouts.forEach(timeout => clearTimeout(timeout));
             countdownTimeouts = [];
-            if (countdownHowl) {
-                countdownHowl.stop();
-                countdownHowl = null;
-            }
             ongoingCountdown = false;
         };
     }, dependencies);
