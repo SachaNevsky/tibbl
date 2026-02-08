@@ -72,7 +72,7 @@ export default function Home() {
 		readingOrderRotation
 	);
 
-	useTouchGestures(handlePlayStop, cameraEnabled, tangibleInstance, [tangibleInstance, cameraEnabled, codeText]);
+	useTouchGestures(handlePlayStop, cameraEnabled, tangibleInstance, GITHUB_BASE, [tangibleInstance, cameraEnabled, codeText]);
 
 	const toggleCamera = (e: { stopPropagation: () => void; }) => {
 		e.stopPropagation();
