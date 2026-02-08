@@ -24,8 +24,6 @@ export function cancelCountdown(tangibleInstance?: TangibleInstance | null): voi
 
 /**
  * Custom hook that detects three-finger touch gestures and triggers a callback.
- * When camera is enabled, initiates a 3-second countdown before executing the callback.
- * Prevents queuing by cancelling any ongoing countdown before starting a new one.
  * 
  * @param onTripleTouch - Callback function to execute on three-finger touch
  * @param cameraEnabled - Whether the camera is currently enabled
@@ -55,58 +53,55 @@ export function useTouchGestures(
                     ongoingCountdown = true;
 
                     const countdown = async () => {
-                        // Save the original sound set for thread 0
                         const originalSoundSet = currentSoundSets[0];
 
-                        // Temporarily load Numbers.mp3 into thread 0
-                        if (tangibleInstance.soundSets['Numbers']) {
-                            const numbersHowl = new window.Howl({
-                                src: [`${githubBase}/assets/sound/Numbers.mp3`],
-                                volume: 1.0,
-                                sprite: tangibleInstance.soundSets['Numbers']
-                            });
-                            tangibleInstance.threads[0] = numbersHowl;
+                        if (!tangibleInstance.soundSets['Numbers']) {
+                            alert('Numbers sound set not found! Keys: ' + Object.keys(tangibleInstance.soundSets).join(', '));
+                            ongoingCountdown = false;
+                            return;
+                        }
 
-                            // Play "3"
-                            numbersHowl.play('3');
+                        const numbersHowl = new window.Howl({
+                            src: [`${githubBase}/assets/sound/Numbers.mp3`],
+                            volume: 1.0,
+                            sprite: tangibleInstance.soundSets['Numbers']
+                        });
 
-                            const timeout1 = setTimeout(() => {
+                        tangibleInstance.threads[0] = numbersHowl;
+
+                        const spriteKeys = Object.keys(tangibleInstance.soundSets['Numbers']);
+                        alert('Numbers sprite keys: ' + spriteKeys.join(', '));
+
+                        numbersHowl.play('3');
+
+                        const timeout1 = setTimeout(() => {
+                            if (!ongoingCountdown) return;
+                            numbersHowl.play('2');
+
+                            const timeout2 = setTimeout(() => {
                                 if (!ongoingCountdown) return;
+                                numbersHowl.play('1');
 
-                                // Play "2"
-                                numbersHowl.play('2');
-
-                                const timeout2 = setTimeout(() => {
+                                const timeout3 = setTimeout(() => {
                                     if (!ongoingCountdown) return;
 
-                                    // Play "1"
-                                    numbersHowl.play('1');
+                                    numbersHowl.stop();
+                                    preloadSoundSet(tangibleInstance, originalSoundSet, 0, githubBase);
 
-                                    const timeout3 = setTimeout(() => {
-                                        if (!ongoingCountdown) return;
-
-                                        // Stop the countdown audio
-                                        numbersHowl.stop();
-
-                                        // Reload the original sound set back into thread 0
-                                        preloadSoundSet(tangibleInstance, originalSoundSet, 0, githubBase);
-
-                                        // Add small delay for cleanup, then execute callback
-                                        setTimeout(() => {
-                                            ongoingCountdown = false;
-                                            countdownTimeouts = [];
-                                            onTripleTouch();
-                                        }, 100);
-                                    }, 1000);
-
-                                    countdownTimeouts.push(timeout3);
+                                    setTimeout(() => {
+                                        ongoingCountdown = false;
+                                        countdownTimeouts = [];
+                                        onTripleTouch();
+                                    }, 100);
                                 }, 1000);
 
-                                countdownTimeouts.push(timeout2);
+                                countdownTimeouts.push(timeout3);
                             }, 1000);
 
-                            countdownTimeouts.push(timeout1);
-                        }
+                            countdownTimeouts.push(timeout2);
+                        }, 1000);
+
+                        countdownTimeouts.push(timeout1);
                     };
 
                     countdown();
