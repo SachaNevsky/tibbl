@@ -1,11 +1,12 @@
 // ./app/welcome/handlers/playStopHandler.ts
 
-import type { TangibleInstance, TopCode } from "../types";
+import type { TangibleInstance } from "../types";
 import { cleanScannedCode } from "../utils/codeCleanup";
 import { validateCode } from "../utils/validateCode";
 import { cancelCountdown } from "../hooks/useTouchGestures";
 import { applyReadingOrderRotation } from "../utils/rotationLogic";
 import { convertCodesToText } from "../utils/convertCodesToText";
+import { ensureAudioContextRunning } from "../utils/initializeAudioContext";
 
 let isExecuting = false;
 let audioCheckInterval: NodeJS.Timeout | null = null;
@@ -56,18 +57,17 @@ export function createPlayStopHandler(
 
         isExecuting = true;
 
+        ensureAudioContextRunning();
+
         if (cameraEnabled) {
-            // Get current codes from the tangible instance
-            const currentCodes = tangibleInstance.currentCodes as TopCode[];
+            const currentCodes = tangibleInstance.currentCodes;
 
             if (currentCodes && currentCodes.length > 0) {
-                // Apply reading order rotation
                 const reorderedCodes = applyReadingOrderRotation(
                     [...currentCodes],
                     readingOrderRotation
                 );
 
-                // Convert to text using the code library and commands
                 const scannedCode = convertCodesToText(
                     reorderedCodes,
                     tangibleInstance.codeLibrary,

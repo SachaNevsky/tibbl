@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import type { TangibleInstance } from "../types";
+import { ensureAudioContextRunning } from "../utils/initializeAudioContext";
 
 let ongoingCountdown = false;
 let countdownTimeouts: NodeJS.Timeout[] = [];
@@ -42,6 +43,7 @@ export function useTouchGestures(
         const handleTouch = (e: TouchEvent) => {
             if (e.touches.length === 3) {
                 e.preventDefault();
+                ensureAudioContextRunning();
 
                 cancelCountdown(tangibleInstance);
 
@@ -63,6 +65,8 @@ export function useTouchGestures(
 
                                     ongoingCountdown = false;
                                     countdownTimeouts = [];
+
+                                    ensureAudioContextRunning();
                                     onTripleTouch();
                                 }, 1000);
 
