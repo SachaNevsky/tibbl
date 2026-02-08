@@ -36,14 +36,18 @@ export const initializeAudioContext = () => {
     }
 };
 
-/**
- * Ensure Howler audio context is running.
- */
 export const ensureAudioContextRunning = (): void => {
-    if (typeof window !== 'undefined' && window.Howler) {
-        const howler = window.Howler as unknown as { ctx?: AudioContext };
-        if (howler.ctx?.state === 'suspended') {
-            howler.ctx.resume();
+    if (typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+        const silentAudio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=');
+        silentAudio.play().catch(() => {
+            console.error("Ignore this")
+        });
+
+        if (window.Howler) {
+            const howler = window.Howler as unknown as { ctx?: AudioContext };
+            if (howler.ctx?.state === 'suspended') {
+                howler.ctx.resume();
+            }
         }
     }
 };
