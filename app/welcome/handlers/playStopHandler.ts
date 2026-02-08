@@ -6,7 +6,6 @@ import { validateCode } from "../utils/validateCode";
 import { cancelCountdown } from "../hooks/useTouchGestures";
 import { applyReadingOrderRotation } from "../utils/rotationLogic";
 import { convertCodesToText } from "../utils/convertCodesToText";
-import { ensureAudioContextRunning } from "../utils/initializeAudioContext";
 
 let isExecuting = false;
 let audioCheckInterval: NodeJS.Timeout | null = null;
@@ -56,8 +55,6 @@ export function createPlayStopHandler(
         }
 
         isExecuting = true;
-
-        ensureAudioContextRunning();
 
         if (cameraEnabled) {
             const currentCodes = tangibleInstance.currentCodes;

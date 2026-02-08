@@ -1,11 +1,11 @@
 // ./app/welcome/hooks/useTouchGestures.ts
 
 import { useEffect } from "react";
-import type { TangibleInstance } from "../types";
-import { ensureAudioContextRunning } from "../utils/initializeAudioContext";
+import type { HowlInstance, TangibleInstance } from "../types";
 
 let ongoingCountdown = false;
 let countdownTimeouts: NodeJS.Timeout[] = [];
+let countdownHowl: HowlInstance | null = null;
 
 /**
  * Cancels any ongoing countdown and clears all timeout timers.
@@ -16,6 +16,10 @@ export function cancelCountdown(tangibleInstance?: TangibleInstance | null): voi
     if (ongoingCountdown) {
         countdownTimeouts.forEach(timeout => clearTimeout(timeout));
         countdownTimeouts = [];
+        if (countdownHowl) {
+            countdownHowl.stop();
+            countdownHowl = null;
+        }
         if (tangibleInstance) {
             tangibleInstance.synthesis.cancel();
         }
@@ -31,19 +35,20 @@ export function cancelCountdown(tangibleInstance?: TangibleInstance | null): voi
  * @param onTripleTouch - Callback function to execute on three-finger touch
  * @param cameraEnabled - Whether the camera is currently enabled
  * @param tangibleInstance - The Tangible instance for text-to-speech countdown
+ * @param githubBase - The base GitHub URL for loading sound files
  * @param dependencies - Dependency array for the effect
  */
 export function useTouchGestures(
     onTripleTouch: () => void,
     cameraEnabled: boolean,
     tangibleInstance: TangibleInstance | null,
+    githubBase: string,
     dependencies: unknown[]
 ): void {
     useEffect(() => {
         const handleTouch = (e: TouchEvent) => {
             if (e.touches.length === 3) {
                 e.preventDefault();
-                ensureAudioContextRunning();
 
                 cancelCountdown(tangibleInstance);
 
@@ -51,22 +56,32 @@ export function useTouchGestures(
                     ongoingCountdown = true;
 
                     const countdown = async () => {
-                        tangibleInstance.readCode("3");
-                        const timeout1 = setTimeout(async () => {
+                        if (!countdownHowl) {
+                            countdownHowl = new window.Howl({
+                                src: [`${githubBase}/assets/sound/Numbers.mp3`],
+                                volume: 1.0,
+                                sprite: tangibleInstance.soundSets['Numbers']
+                            });
+                        }
+
+                        countdownHowl.play('3');
+                        const timeout1 = setTimeout(() => {
                             if (!ongoingCountdown) return;
 
-                            tangibleInstance.readCode("2");
-                            const timeout2 = setTimeout(async () => {
+                            countdownHowl?.play('2');
+                            const timeout2 = setTimeout(() => {
                                 if (!ongoingCountdown) return;
 
-                                tangibleInstance.readCode("1");
+                                countdownHowl?.play('1');
                                 const timeout3 = setTimeout(() => {
                                     if (!ongoingCountdown) return;
 
                                     ongoingCountdown = false;
                                     countdownTimeouts = [];
+                                    if (countdownHowl) {
+                                        countdownHowl = null;
+                                    }
 
-                                    ensureAudioContextRunning();
                                     onTripleTouch();
                                 }, 1000);
 
@@ -92,6 +107,10 @@ export function useTouchGestures(
             document.removeEventListener("touchstart", handleTouch);
             countdownTimeouts.forEach(timeout => clearTimeout(timeout));
             countdownTimeouts = [];
+            if (countdownHowl) {
+                countdownHowl.stop();
+                countdownHowl = null;
+            }
             ongoingCountdown = false;
         };
     }, dependencies);

@@ -2,15 +2,12 @@
 
 /**
  * Initialize audio context for iOS devices.
+ * iOS requires user interaction before audio can play.
+ * This function unlocks audio by playing silence.
  */
 export const initializeAudioContext = () => {
     if (typeof window !== 'undefined' && window.Howler) {
         try {
-            const howler = window.Howler as unknown as { ctx?: AudioContext };
-            if (howler.ctx?.state === 'suspended') {
-                howler.ctx.resume();
-            }
-
             const silentSound = new window.Howl({
                 src: ['data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA='],
                 volume: 0,
@@ -32,22 +29,6 @@ export const initializeAudioContext = () => {
             window.speechSynthesis.cancel();
         } catch (error) {
             console.error("Failed to initialize speech synthesis:", error);
-        }
-    }
-};
-
-export const ensureAudioContextRunning = (): void => {
-    if (typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
-        const silentAudio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=');
-        silentAudio.play().catch(() => {
-            console.error("Ignore this")
-        });
-
-        if (window.Howler) {
-            const howler = window.Howler as unknown as { ctx?: AudioContext };
-            if (howler.ctx?.state === 'suspended') {
-                howler.ctx.resume();
-            }
         }
     }
 };
