@@ -7,6 +7,22 @@ let ongoingCountdown = false;
 let countdownTimeouts: NodeJS.Timeout[] = [];
 
 /**
+ * Cancels any ongoing countdown and clears all timeout timers.
+ * 
+ * @param tangibleInstance - Optional Tangible instance to cancel synthesis
+ */
+export function cancelCountdown(tangibleInstance?: TangibleInstance | null): void {
+    if (ongoingCountdown) {
+        countdownTimeouts.forEach(timeout => clearTimeout(timeout));
+        countdownTimeouts = [];
+        if (tangibleInstance) {
+            tangibleInstance.synthesis.cancel();
+        }
+        ongoingCountdown = false;
+    }
+}
+
+/**
  * Custom hook that detects three-finger touch gestures and triggers a callback.
  * When camera is enabled, initiates a 3-second countdown before executing the callback.
  * Prevents queuing by cancelling any ongoing countdown before starting a new one.
@@ -27,14 +43,7 @@ export function useTouchGestures(
             if (e.touches.length === 3) {
                 e.preventDefault();
 
-                if (ongoingCountdown) {
-                    countdownTimeouts.forEach(timeout => clearTimeout(timeout));
-                    countdownTimeouts = [];
-                    if (tangibleInstance) {
-                        tangibleInstance.synthesis.cancel();
-                    }
-                    ongoingCountdown = false;
-                }
+                cancelCountdown(tangibleInstance);
 
                 if (cameraEnabled && tangibleInstance) {
                     ongoingCountdown = true;

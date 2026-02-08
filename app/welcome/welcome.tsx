@@ -26,6 +26,8 @@ const SOUND_SETS = [
 	{ value: "FurElise", label: "Fur Elise" }
 ];
 
+const PLACEHOLDER = "Thread 1\nLoop 4 times\nPlay 5\nEnd loop\nPlay 7\n\nThread 2\nDelay 4\nLoop 3 times\nPlay 8\nEnd loop";
+
 export default function Home() {
 	const [cameraEnabled, setCameraEnabled] = useState(false);
 	const [codeText, setCodeText] = useState("");
@@ -52,7 +54,8 @@ export default function Home() {
 		codeText,
 		textareaRef,
 		setCodeText,
-		setIsPlaying
+		setIsPlaying,
+		PLACEHOLDER
 	);
 
 	const handleRead = createReadHandler(
@@ -61,7 +64,8 @@ export default function Home() {
 		codeText,
 		textareaRef,
 		setCodeText,
-		setIsReading
+		setIsReading,
+		PLACEHOLDER
 	);
 
 	useTouchGestures(handlePlayStop, cameraEnabled, tangibleInstance, [tangibleInstance, cameraEnabled, codeText]);
@@ -138,6 +142,7 @@ export default function Home() {
 				soundSetOptions={SOUND_SETS}
 				onCodeTextChange={setCodeText}
 				onSoundSetChange={handleSoundSetChange}
+				placeholder={PLACEHOLDER}
 			/>
 		</div>
 	);

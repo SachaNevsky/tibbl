@@ -3,6 +3,7 @@
 import type { TangibleInstance } from "../types";
 import { cleanScannedCode } from "../utils/codeCleanup";
 import { validateCode } from "../utils/validateCode";
+import { cancelCountdown } from "../hooks/useTouchGestures";
 
 let isExecuting = false;
 let audioCheckInterval: NodeJS.Timeout | null = null;
@@ -15,6 +16,7 @@ let audioCheckInterval: NodeJS.Timeout | null = null;
  * @param tangibleInstance - The Tangible instance for code execution
  * @param cameraEnabled - Whether camera scanning is enabled
  * @param codeText - The current code text
+ * @param placeholder - Placeholder code to play
  * @param textareaRef - Reference to the textarea element
  * @param setCodeText - State setter for code text
  * @param setIsPlaying - State setter for playing status
@@ -26,7 +28,8 @@ export function createPlayStopHandler(
     codeText: string,
     textareaRef: React.RefObject<HTMLTextAreaElement | null>,
     setCodeText: (text: string) => void,
-    setIsPlaying: (playing: boolean) => void
+    setIsPlaying: (playing: boolean) => void,
+    placeholder: string
 ): () => void {
     return () => {
         if (!tangibleInstance) {
@@ -41,6 +44,7 @@ export function createPlayStopHandler(
 
         if (tangibleInstance.isAudioPlaying() || isExecuting) {
             tangibleInstance.stopAllSounds();
+            cancelCountdown(tangibleInstance);
             setIsPlaying(false);
             isExecuting = false;
             return;
@@ -100,6 +104,21 @@ export function createPlayStopHandler(
         if (textCode && textCode.trim()) {
             tangibleInstance.codeThreads = [[], [], []];
             tangibleInstance.runTextCode(textCode);
+            setIsPlaying(true);
+
+            audioCheckInterval = setInterval(() => {
+                if (!tangibleInstance.isAudioPlaying()) {
+                    setIsPlaying(false);
+                    isExecuting = false;
+                    if (audioCheckInterval) {
+                        clearInterval(audioCheckInterval);
+                        audioCheckInterval = null;
+                    }
+                }
+            }, 100);
+        } else if (!textCode && !cameraEnabled) {
+            setCodeText(placeholder);
+            tangibleInstance.runTextCode(placeholder);
             setIsPlaying(true);
 
             audioCheckInterval = setInterval(() => {

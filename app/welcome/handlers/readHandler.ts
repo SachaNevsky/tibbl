@@ -13,6 +13,7 @@ let isReading = false;
  * @param tangibleInstance - The Tangible instance for speech synthesis
  * @param cameraEnabled - Whether camera scanning is enabled
  * @param codeText - The current code text
+ * @param placeholder - Placeholder code to read
  * @param textareaRef - Reference to the textarea element
  * @param setCodeText - State setter for code text
  * @param setIsReading - State setter for reading status
@@ -24,7 +25,8 @@ export function createReadHandler(
     codeText: string,
     textareaRef: React.RefObject<HTMLTextAreaElement | null>,
     setCodeText: (text: string) => void,
-    setIsReading: (reading: boolean) => void
+    setIsReading: (reading: boolean) => void,
+    placeholder: string
 ): () => void {
     return () => {
         if (!tangibleInstance) {
@@ -69,6 +71,11 @@ export function createReadHandler(
 
         if (textCode && textCode.trim()) {
             tangibleInstance.readCode(textCode);
+            setIsReading(true);
+        } else if (!textCode && !cameraEnabled) {
+            const placeholder = "Thread 1\nLoop 4 times\nPlay 5\nEnd loop\nPlay 7\n\nThread 2\nDelay 4\nLoop 3 times\nPlay 8\nEnd loop";
+            setCodeText(placeholder);
+            tangibleInstance.readCode(placeholder);
             setIsReading(true);
         } else {
             tangibleInstance.readCode("No code to read.");

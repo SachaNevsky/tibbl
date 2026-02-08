@@ -38,7 +38,7 @@ export function Header({
 }: HeaderProps) {
     return (
         <header className="header" role="banner">
-            <div className="logo-container">
+            <div className="logo-container" aria-hidden="true">
                 <img
                     src="https://armbennett.github.io/tangible-11ty/assets/img/tibbl-logo.png"
                     alt="Application logo"

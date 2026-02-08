@@ -38,7 +38,7 @@ export function CameraSection({ cameraEnabled, rotation, onRotate }: CameraSecti
                             aria-label={`Rotate camera view 90 degrees clockwise (currently ${rotation} degrees)`}
                             type="button"
                         >
-                            <i className="fa-solid fa-rotate-right" aria-hidden="true"></i>
+                            <i className="fa-solid fa-camera-rotate" aria-hidden="true"></i>
                         </button>
                     </div>
                 </section>

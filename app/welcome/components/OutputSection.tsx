@@ -10,6 +10,7 @@ interface OutputSectionProps {
     soundSetOptions: Array<{ value: string; label: string }>;
     onCodeTextChange: (text: string) => void;
     onSoundSetChange: (threadIndex: number, soundSet: string) => void;
+    placeholder: string;
 }
 
 /**
@@ -18,11 +19,13 @@ interface OutputSectionProps {
  * @param props - Component props
  * @param props.cameraEnabled - Whether the camera is currently enabled
  * @param props.codeText - The current code text
+ * @param props.placeholder - Placeholder code in input box
  * @param props.textareaRef - Reference to the textarea element
  * @param props.soundSets - Currently selected sound sets for each thread
  * @param props.soundSetOptions - Available sound set options
  * @param props.onCodeTextChange - Handler for code text changes
  * @param props.onSoundSetChange - Handler for sound set selection changes
+ * 
  */
 export function OutputSection({
     cameraEnabled,
@@ -31,7 +34,8 @@ export function OutputSection({
     soundSets,
     soundSetOptions,
     onCodeTextChange,
-    onSoundSetChange
+    onSoundSetChange,
+    placeholder
 }: OutputSectionProps) {
     return (
         <section
@@ -45,7 +49,7 @@ export function OutputSection({
                     value={codeText}
                     onChange={(e) => onCodeTextChange(e.target.value)}
                     className="output-textbox"
-                    placeholder={`Thread 1\nLoop 4 times\nPlay 5\nEnd loop\nPlay 7\n\nThread 2\nDelay 4\nLoop 3 times\nPlay 8\nEnd loop`}
+                    placeholder={placeholder}
                     aria-label="Code output text area"
                 />
             </div>
