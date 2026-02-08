@@ -15,9 +15,9 @@ import { initializeAudioContext } from "./utils/initializeAudioContext";
 import type { TangibleInstance } from "./types";
 import "./welcome.css";
 
-const GITHUB_BASE = "https://raw.githubusercontent.com/armbennett/tangible-11ty/main";
+const GITHUB_BASE: string = "https://raw.githubusercontent.com/armbennett/tangible-11ty/main";
 
-const SOUND_SETS = [
+const SOUND_SETS: { value: string, label: string }[] = [
 	{ value: "Numbers", label: "Numbers" },
 	{ value: "MusicLoops1", label: "Music Loops 1" },
 	{ value: "Mystery", label: "Mystery" },
@@ -26,25 +26,27 @@ const SOUND_SETS = [
 	{ value: "FurElise", label: "Fur Elise" }
 ];
 
-const PLACEHOLDER = "Thread 1\nLoop 4 times\nPlay 5\nEnd loop\nPlay 7\n\nThread 2\nDelay 4\nLoop 3 times\nPlay 8\nEnd loop";
+const PLACEHOLDER: string = "Thread 1\nLoop 4 times\nPlay 5\nEnd loop\nPlay 7\n\nThread 2\nDelay 4\nLoop 3 times\nPlay 8\nEnd loop";
 
 export default function Home() {
-	const [cameraEnabled, setCameraEnabled] = useState(false);
-	const [codeText, setCodeText] = useState("");
-	const [isLoading, setIsLoading] = useState(true);
+	const [cameraEnabled, setCameraEnabled] = useState<boolean>(false);
+	const [codeText, setCodeText] = useState<string>("");
+	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [soundSets, setSoundSets] = useState<string[]>(["Numbers", "Notifications", "Notifications"]);
 	const [tangibleInstance, setTangibleInstance] = useState<TangibleInstance | null>(null);
-	const [isReading, setIsReading] = useState(false);
-	const [isPlaying, setIsPlaying] = useState(false);
-	const [rotation, setRotation] = useState(0);
-	const [audioInitialized, setAudioInitialized] = useState(false);
+	const [isReading, setIsReading] = useState<boolean>(false);
+	const [isPlaying, setIsPlaying] = useState<boolean>(false);
+	const [rotation, setRotation] = useState<0 | 90 | 180 | 270>(0);
+	const [readingOrderRotation, setReadingOrderRotation] = useState<0 | 90 | 180 | 270>(0);
+	const [audioInitialized, setAudioInitialized] = useState<boolean>(false);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const lastClickTime = useRef<number>(0);
 
 	const preloadCallback = useCallback((instance: TangibleInstance, soundSet: string, threadIndex: number) => {
 		preloadSoundSet(instance, soundSet, threadIndex, GITHUB_BASE);
 	}, []);
 
-	useCameraSetup(cameraEnabled);
+	useCameraSetup(cameraEnabled, readingOrderRotation);
 	useReadingState(tangibleInstance, isReading, setIsReading);
 	useScriptInitialization(GITHUB_BASE, setTangibleInstance, setIsLoading, preloadCallback);
 
@@ -55,7 +57,8 @@ export default function Home() {
 		textareaRef,
 		setCodeText,
 		setIsPlaying,
-		PLACEHOLDER
+		PLACEHOLDER,
+		readingOrderRotation
 	);
 
 	const handleRead = createReadHandler(
@@ -65,12 +68,19 @@ export default function Home() {
 		textareaRef,
 		setCodeText,
 		setIsReading,
-		PLACEHOLDER
+		PLACEHOLDER,
+		readingOrderRotation
 	);
 
 	useTouchGestures(handlePlayStop, cameraEnabled, tangibleInstance, [tangibleInstance, cameraEnabled, codeText]);
 
-	const toggleCamera = () => {
+	const toggleCamera = (e: { stopPropagation: () => void; }) => {
+		e.stopPropagation();
+
+		const now = Date.now();
+		if (now - lastClickTime.current < 300) return;
+
+		lastClickTime.current = now;
 		if (!tangibleInstance) {
 			console.error("Tangible instance not initialized");
 			return;
@@ -103,8 +113,24 @@ export default function Home() {
 		setCameraEnabled(newCameraState);
 	};
 
-	const handleRotate = () => {
-		setRotation((prevRotation) => (prevRotation + 90) % 360);
+	const handleRotate = (e: { stopPropagation: () => void; }) => {
+		e.stopPropagation();
+
+		const now = Date.now();
+		if (now - lastClickTime.current < 300) return;
+
+		lastClickTime.current = now;
+		setRotation((prevRotation) => (prevRotation + 90) % 360 as 0 | 90 | 180 | 270);
+	};
+
+	const handleReadingOrderRotate = (e: { stopPropagation: () => void; }) => {
+		e.stopPropagation();
+
+		const now = Date.now();
+		if (now - lastClickTime.current < 300) return;
+
+		lastClickTime.current = now;
+		setReadingOrderRotation((prevRotation) => (prevRotation + 90) % 360 as 0 | 90 | 180 | 270);
 	};
 
 	const handleSoundSetChange = (threadIndex: number, soundSet: string) => {
@@ -132,7 +158,9 @@ export default function Home() {
 			<CameraSection
 				cameraEnabled={cameraEnabled}
 				rotation={rotation}
+				readingOrderRotation={readingOrderRotation}
 				onRotate={handleRotate}
+				onReadingOrderRotate={handleReadingOrderRotate}
 			/>
 			<OutputSection
 				cameraEnabled={cameraEnabled}

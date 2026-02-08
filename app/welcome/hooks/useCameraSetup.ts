@@ -1,81 +1,23 @@
 // ./app/welcome/hooks/useCameraSetup.ts
 
 import { useEffect } from "react";
-
-interface TopCode {
-    code: number;
-    x: number;
-    y: number;
-    radius: number;
-    angle: number;
-}
-
-/**
- * Sort the top codes `y` ascending and `x` descending (since video is mirrored).
- * @param a - The first value to compare
- * @param b - The second value to compare
- * @return `0` if `a` and `b` are considered equal (same position);
- * 
- * `1` if `a` comes after `b` in the sorted array;
- * 
- * `-1` if `a` comes before `b` in the sorted array
- */
-function sortTopCodeComparator(a: TopCode, b: TopCode): number {
-
-    if (Math.abs(a.y - b.y) <= 40) {
-        if (a.x == b.x) {
-            return 0;
-        }
-        if (a.x < b.x) {
-            return 1;
-        }
-        return -1;
-    }
-    if (a.y < b.y) {
-        return -1;
-    }
-    return 1;
-}
-
-/** Sort topCodes into a grid using `(x, y)` coordinates.
- *
- * @param topCodes - The topCodes to sort
- * @return multi-dimensional grid array
- */
-function sortTopCodesIntoGrid(topCodes: Array<TopCode>) {
-    topCodes.sort(sortTopCodeComparator);
-    let grid: Array<Array<TopCode>> = [];
-    let line = Array();
-    let currentY = -1;
-
-    for (let i = 0; i < topCodes.length; i++) {
-        if (currentY >= 0 && topCodes[i].y - currentY >= 40) {
-            grid.push(line);
-            line = Array();
-            currentY = topCodes[i].y;
-        } else if (currentY < 0) {
-            currentY = topCodes[i].y;
-        }
-        line.push(topCodes[i]);
-    }
-    grid.push(line);
-    return grid;
-}
+import { applyReadingOrderRotation } from "../utils/rotationLogic";
+import type { TopCode } from "../types";
 
 /**
  * Custom hook that sets up and manages the camera video canvas.
  * Draws the video feed to the canvas every frame and overlays TopCode detection circles.
  * 
  * @param cameraEnabled - Whether the camera is currently enabled
+ * @param readingOrderRotation - The rotation angle for reading order (0, 90, 180, 270)
  */
-export function useCameraSetup(cameraEnabled: boolean): void {
+export function useCameraSetup(cameraEnabled: boolean, readingOrderRotation: 0 | 90 | 180 | 270): void {
     useEffect(() => {
         if (!cameraEnabled) return;
 
         const handleTopcodesDetected = (event: Event) => {
             const customEvent = event as CustomEvent<{ topcodes: TopCode[] }>;
-            const topcodes = sortTopCodesIntoGrid(customEvent.detail.topcodes);
-
+            const orderedTopcodes = applyReadingOrderRotation(customEvent.detail.topcodes, readingOrderRotation);
             const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
             const canvas = document.getElementById('video-canvas') as HTMLCanvasElement;
 
@@ -108,33 +50,31 @@ export function useCameraSetup(cameraEnabled: boolean): void {
 
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = "$00640080";
+            ctx.fillStyle = "#00640080";
             ctx.strokeStyle = "#006400";
             ctx.lineWidth = 5;
-            let counter = 1;
 
-            for (let i = 0; i < topcodes.length; i++) {
-                for (let j = 0; j < topcodes[i].length; j++) {
-                    const line = topcodes[i];
-                    const topCode = line[j];
+            for (let counter = 0; counter < orderedTopcodes.length; counter++) {
+                const topCode = orderedTopcodes[counter];
 
-                    const transformedX = canvas.width - topCode.x;
-                    const transformedY = topCode.y;
+                const transformedX = canvas.width - topCode.x;
+                const transformedY = topCode.y;
 
-                    ctx.beginPath();
-                    ctx.arc(transformedX, transformedY, topCode.radius, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(transformedX, transformedY, topCode.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
 
-                    ctx.fillStyle = "rgba(255, 255, 255, 1)";
-                    ctx.font = "900 28px monospace";
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText(`${counter}`, transformedX, transformedY);
-
-                    ctx.fillStyle = "#00640080";
-                    counter++;
-                }
+                ctx.fillStyle = "rgba(255, 255, 255, 1)";
+                ctx.font = "900 28px monospace";
+                ctx.save();
+                ctx.translate(transformedX, transformedY);
+                ctx.rotate(readingOrderRotation * (Math.PI / 180));
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(`${counter + 1}`, 0, 0);
+                ctx.restore();
+                ctx.fillStyle = "#00640080";
             }
         };
 
@@ -255,5 +195,5 @@ export function useCameraSetup(cameraEnabled: boolean): void {
                 observer.disconnect();
             }
         };
-    }, [cameraEnabled]);
+    }, [cameraEnabled, readingOrderRotation]);
 }

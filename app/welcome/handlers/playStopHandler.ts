@@ -1,9 +1,11 @@
 // ./app/welcome/handlers/playStopHandler.ts
 
-import type { TangibleInstance } from "../types";
+import type { TangibleInstance, TopCode } from "../types";
 import { cleanScannedCode } from "../utils/codeCleanup";
 import { validateCode } from "../utils/validateCode";
 import { cancelCountdown } from "../hooks/useTouchGestures";
+import { applyReadingOrderRotation } from "../utils/rotationLogic";
+import { convertCodesToText } from "../utils/convertCodesToText";
 
 let isExecuting = false;
 let audioCheckInterval: NodeJS.Timeout | null = null;
@@ -20,6 +22,7 @@ let audioCheckInterval: NodeJS.Timeout | null = null;
  * @param textareaRef - Reference to the textarea element
  * @param setCodeText - State setter for code text
  * @param setIsPlaying - State setter for playing status
+ * @param readingOrderRotation - The rotation angle for reading order
  * @returns Handler function for play/stop button clicks
  */
 export function createPlayStopHandler(
@@ -29,7 +32,8 @@ export function createPlayStopHandler(
     textareaRef: React.RefObject<HTMLTextAreaElement | null>,
     setCodeText: (text: string) => void,
     setIsPlaying: (playing: boolean) => void,
-    placeholder: string
+    placeholder: string,
+    readingOrderRotation: 0 | 90 | 180 | 270
 ): () => void {
     return () => {
         if (!tangibleInstance) {
@@ -53,39 +57,55 @@ export function createPlayStopHandler(
         isExecuting = true;
 
         if (cameraEnabled) {
-            const scannedCode = tangibleInstance.scanCode();
+            // Get current codes from the tangible instance
+            const currentCodes = tangibleInstance.currentCodes as TopCode[];
 
-            if (scannedCode) {
-                const cleanedCode = cleanScannedCode(scannedCode);
+            if (currentCodes && currentCodes.length > 0) {
+                // Apply reading order rotation
+                const reorderedCodes = applyReadingOrderRotation(
+                    [...currentCodes],
+                    readingOrderRotation
+                );
 
-                setCodeText(cleanedCode);
+                // Convert to text using the code library and commands
+                const scannedCode = convertCodesToText(
+                    reorderedCodes,
+                    tangibleInstance.codeLibrary,
+                    tangibleInstance.commands
+                );
 
-                const validation = validateCode(cleanedCode);
-                if (!validation.valid && validation.error) {
-                    tangibleInstance.readCode(validation.error);
-                    isExecuting = false;
+                if (scannedCode) {
+                    const cleanedCode = cleanScannedCode(scannedCode);
+
+                    setCodeText(cleanedCode);
+
+                    const validation = validateCode(cleanedCode);
+                    if (!validation.valid && validation.error) {
+                        tangibleInstance.readCode(validation.error);
+                        isExecuting = false;
+                        return;
+                    }
+
+                    if (cleanedCode && cleanedCode.trim()) {
+                        tangibleInstance.codeThreads = [[], [], []];
+                        tangibleInstance.runTextCode(cleanedCode);
+                        setIsPlaying(true);
+
+                        audioCheckInterval = setInterval(() => {
+                            if (!tangibleInstance.isAudioPlaying()) {
+                                setIsPlaying(false);
+                                isExecuting = false;
+                                if (audioCheckInterval) {
+                                    clearInterval(audioCheckInterval);
+                                    audioCheckInterval = null;
+                                }
+                            }
+                        }, 100);
+                    } else {
+                        isExecuting = false;
+                    }
                     return;
                 }
-
-                if (cleanedCode && cleanedCode.trim()) {
-                    tangibleInstance.codeThreads = [[], [], []];
-                    tangibleInstance.runTextCode(cleanedCode);
-                    setIsPlaying(true);
-
-                    audioCheckInterval = setInterval(() => {
-                        if (!tangibleInstance.isAudioPlaying()) {
-                            setIsPlaying(false);
-                            isExecuting = false;
-                            if (audioCheckInterval) {
-                                clearInterval(audioCheckInterval);
-                                audioCheckInterval = null;
-                            }
-                        }
-                    }, 100);
-                } else {
-                    isExecuting = false;
-                }
-                return;
             }
             isExecuting = false;
         }

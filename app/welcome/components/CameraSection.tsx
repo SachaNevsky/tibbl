@@ -3,20 +3,25 @@
 interface CameraSectionProps {
     cameraEnabled: boolean;
     rotation: number;
-    onRotate: () => void;
+    readingOrderRotation: number;
+    onRotate: (e: { stopPropagation: () => void; }) => void;
+    onReadingOrderRotate: (e: { stopPropagation: () => void; }) => void;
 }
 
 /**
  * Renders the camera section with video canvas for code tile detection.
  * Shows canvas when camera is enabled, hides it otherwise.
  * Includes a rotation button to rotate the entire canvas element 90 degrees clockwise via CSS.
+ * Includes a reading order rotation button to change the order in which topcodes are read.
  * 
  * @param props - Component props
  * @param props.cameraEnabled - Whether the camera is currently enabled
  * @param props.rotation - Current canvas rotation in degrees
+ * @param props.readingOrderRotation - Current reading order rotation in degrees
  * @param props.onRotate - Handler for rotating the canvas
+ * @param props.onReadingOrderRotate - Handler for rotating the reading order
  */
-export function CameraSection({ cameraEnabled, rotation, onRotate }: CameraSectionProps) {
+export function CameraSection({ cameraEnabled, rotation, readingOrderRotation, onRotate, onReadingOrderRotate }: CameraSectionProps) {
     const isRotatedSideways = rotation === 90 || rotation === 270;
 
     return (
@@ -39,6 +44,14 @@ export function CameraSection({ cameraEnabled, rotation, onRotate }: CameraSecti
                             type="button"
                         >
                             <i className="fa-solid fa-camera-rotate" aria-hidden="true"></i>
+                        </button>
+                        <button
+                            className="reading-order-button"
+                            onClick={onReadingOrderRotate}
+                            aria-label={`Rotate reading order 90 degrees clockwise (currently ${readingOrderRotation} degrees)`}
+                            type="button"
+                        >
+                            <i className="fa-solid fa-rotate-right" aria-hidden="true"></i>
                         </button>
                     </div>
                 </section>

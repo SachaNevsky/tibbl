@@ -1,7 +1,9 @@
 // ./app/welcome/handlers/readHandler.ts
 
-import type { TangibleInstance } from "../types";
+import type { TangibleInstance, TopCode } from "../types";
 import { cleanScannedCode } from "../utils/codeCleanup";
+import { convertCodesToText } from "../utils/convertCodesToText";
+import { applyReadingOrderRotation } from "../utils/rotationLogic";
 
 let isReading = false;
 
@@ -17,6 +19,7 @@ let isReading = false;
  * @param textareaRef - Reference to the textarea element
  * @param setCodeText - State setter for code text
  * @param setIsReading - State setter for reading status
+ * @param readingOrderRotation - The rotation angle for reading order
  * @returns Handler function for read button clicks
  */
 export function createReadHandler(
@@ -26,7 +29,8 @@ export function createReadHandler(
     textareaRef: React.RefObject<HTMLTextAreaElement | null>,
     setCodeText: (text: string) => void,
     setIsReading: (reading: boolean) => void,
-    placeholder: string
+    placeholder: string,
+    readingOrderRotation: 0 | 90 | 180 | 270
 ): () => void {
     return () => {
         if (!tangibleInstance) {
@@ -49,20 +53,33 @@ export function createReadHandler(
         isReading = true;
 
         if (cameraEnabled) {
-            const scannedCode = tangibleInstance.scanCode();
+            const currentCodes = tangibleInstance.currentCodes as TopCode[];
 
-            if (scannedCode) {
-                const cleanedCode = cleanScannedCode(scannedCode);
+            if (currentCodes && currentCodes.length > 0) {
+                const reorderedCodes = applyReadingOrderRotation(
+                    [...currentCodes],
+                    readingOrderRotation
+                );
 
-                setCodeText(cleanedCode);
+                const scannedCode = convertCodesToText(
+                    reorderedCodes,
+                    tangibleInstance.codeLibrary,
+                    tangibleInstance.commands
+                );
 
-                if (cleanedCode && cleanedCode.trim()) {
-                    tangibleInstance.readCode(cleanedCode);
-                    setIsReading(true);
-                } else {
-                    isReading = false;
+                if (scannedCode) {
+                    const cleanedCode = cleanScannedCode(scannedCode);
+
+                    setCodeText(cleanedCode);
+
+                    if (cleanedCode && cleanedCode.trim()) {
+                        tangibleInstance.readCode(cleanedCode);
+                        setIsReading(true);
+                    } else {
+                        isReading = false;
+                    }
+                    return;
                 }
-                return;
             }
             isReading = false;
         }
@@ -73,7 +90,6 @@ export function createReadHandler(
             tangibleInstance.readCode(textCode);
             setIsReading(true);
         } else if (!textCode && !cameraEnabled) {
-            const placeholder = "Thread 1\nLoop 4 times\nPlay 5\nEnd loop\nPlay 7\n\nThread 2\nDelay 4\nLoop 3 times\nPlay 8\nEnd loop";
             setCodeText(placeholder);
             tangibleInstance.readCode(placeholder);
             setIsReading(true);

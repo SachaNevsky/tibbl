@@ -8,7 +8,7 @@ interface HeaderProps {
     isReading: boolean;
     isLoading: boolean;
     tangibleInstance: TangibleInstance | null;
-    onCameraToggle: () => void;
+    onCameraToggle: (e: { stopPropagation: () => void; }) => void;
     onPlayStop: () => void;
     onRead: () => void;
 }
