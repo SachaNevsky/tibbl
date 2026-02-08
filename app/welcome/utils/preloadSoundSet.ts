@@ -18,7 +18,7 @@ export function preloadSoundSet(
 ): void {
     const thread = new window.Howl({
         src: [`${githubBase}/assets/sound/${soundSet}.mp3`],
-        volume: 0.2,
+        volume: 1.0,
         sprite: instance.soundSets[soundSet]
     });
     instance.threads[threadIndex] = thread;

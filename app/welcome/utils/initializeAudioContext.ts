@@ -41,7 +41,6 @@ export const initializeAudioContext = () => {
  */
 export const ensureAudioContextRunning = (): void => {
     if (typeof window !== 'undefined' && window.Howler) {
-        // Howler.ctx is not in the type definitions but exists at runtime
         const howler = window.Howler as unknown as { ctx?: AudioContext };
         if (howler.ctx?.state === 'suspended') {
             howler.ctx.resume();
