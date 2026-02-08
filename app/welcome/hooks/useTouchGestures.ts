@@ -55,53 +55,47 @@ export function useTouchGestures(
                     const countdown = async () => {
                         const originalSoundSet = currentSoundSets[0];
 
-                        if (!tangibleInstance.soundSets['Numbers']) {
-                            alert('Numbers sound set not found! Keys: ' + Object.keys(tangibleInstance.soundSets).join(', '));
-                            ongoingCountdown = false;
-                            return;
-                        }
+                        if (tangibleInstance.soundSets['Numbers']) {
+                            const numbersHowl = new window.Howl({
+                                src: [`${githubBase}/assets/sound/Numbers.mp3`],
+                                volume: 1.0,
+                                sprite: tangibleInstance.soundSets['Numbers']
+                            });
+                            tangibleInstance.threads[0] = numbersHowl;
 
-                        const numbersHowl = new window.Howl({
-                            src: [`${githubBase}/assets/sound/Numbers.mp3`],
-                            volume: 1.0,
-                            sprite: tangibleInstance.soundSets['Numbers']
-                        });
+                            numbersHowl.play('c');
 
-                        tangibleInstance.threads[0] = numbersHowl;
-
-                        const spriteKeys = Object.keys(tangibleInstance.soundSets['Numbers']);
-                        alert('Numbers sprite keys: ' + spriteKeys.join(', '));
-
-                        numbersHowl.play('3');
-
-                        const timeout1 = setTimeout(() => {
-                            if (!ongoingCountdown) return;
-                            numbersHowl.play('2');
-
-                            const timeout2 = setTimeout(() => {
+                            const timeout1 = setTimeout(() => {
                                 if (!ongoingCountdown) return;
-                                numbersHowl.play('1');
 
-                                const timeout3 = setTimeout(() => {
+                                numbersHowl.play('b');
+
+                                const timeout2 = setTimeout(() => {
                                     if (!ongoingCountdown) return;
 
-                                    numbersHowl.stop();
-                                    preloadSoundSet(tangibleInstance, originalSoundSet, 0, githubBase);
+                                    numbersHowl.play('a');
 
-                                    setTimeout(() => {
-                                        ongoingCountdown = false;
-                                        countdownTimeouts = [];
-                                        onTripleTouch();
-                                    }, 100);
+                                    const timeout3 = setTimeout(() => {
+                                        if (!ongoingCountdown) return;
+
+                                        numbersHowl.stop();
+                                        preloadSoundSet(tangibleInstance, originalSoundSet, 0, githubBase);
+
+                                        setTimeout(() => {
+                                            ongoingCountdown = false;
+                                            countdownTimeouts = [];
+                                            onTripleTouch();
+                                        }, 100);
+                                    }, 1000);
+
+                                    countdownTimeouts.push(timeout3);
                                 }, 1000);
 
-                                countdownTimeouts.push(timeout3);
+                                countdownTimeouts.push(timeout2);
                             }, 1000);
 
-                            countdownTimeouts.push(timeout2);
-                        }, 1000);
-
-                        countdownTimeouts.push(timeout1);
+                            countdownTimeouts.push(timeout1);
+                        }
                     };
 
                     countdown();
