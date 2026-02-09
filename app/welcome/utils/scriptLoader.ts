@@ -33,7 +33,6 @@ export async function loadExternalScripts(
     modifiedCode = modifiedCode.replace(
         /setupTangible\(\) \{[\s\S]*?setVideoFrameCallback\("video-canvas", function \(jsonString\) \{[\s\S]*?\}, this\);[\s\S]*?\}/,
         `setupTangible() {
-        this.setVideoCanvasHeight('video-canvas');
         let tangible = this;
         
         TopCodes.setVideoFrameCallback("video-canvas", function (jsonString) {

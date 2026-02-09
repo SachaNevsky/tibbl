@@ -41,6 +41,7 @@ export default function Home() {
 	const [audioInitialized, setAudioInitialized] = useState<boolean>(false);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const lastClickTime = useRef<number>(0);
+	const videoMetadataHandled = useRef<boolean>(false);
 
 	const preloadCallback = useCallback((instance: TangibleInstance, soundSet: string, threadIndex: number) => {
 		preloadSoundSet(instance, soundSet, threadIndex, GITHUB_BASE);
@@ -74,6 +75,60 @@ export default function Home() {
 
 	useTouchGestures(handlePlayStop, cameraEnabled, tangibleInstance, GITHUB_BASE, soundSets, preloadSoundSet, [tangibleInstance, cameraEnabled, codeText]);
 
+	const setupCanvasForVideo = useCallback(() => {
+		const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
+		const canvas = document.getElementById('video-canvas') as HTMLCanvasElement;
+
+		if (!video || !canvas || video.readyState < 1) {
+			return;
+		}
+
+		const videoWidth = video.videoWidth;
+		const videoHeight = video.videoHeight;
+		const videoAspectRatio = videoWidth / videoHeight;
+
+		console.log('setupCanvasForVideo - Video dimensions:', videoWidth, 'x', videoHeight, 'Aspect ratio:', videoAspectRatio.toFixed(2));
+
+		const isVideoPortrait = videoHeight > videoWidth;
+		const is16by9 = Math.abs(videoAspectRatio - 16 / 9) < 0.1;
+		const is4by3 = Math.abs(videoAspectRatio - 4 / 3) < 0.1;
+
+		let targetWidth: number;
+		let targetHeight: number;
+
+		if (isVideoPortrait) {
+			targetWidth = videoWidth;
+			targetHeight = videoHeight;
+		} else if (is16by9) {
+			targetWidth = 1280;
+			targetHeight = 720;
+		} else if (is4by3) {
+			targetWidth = 640;
+			targetHeight = 480;
+		} else {
+			targetWidth = 640;
+			targetHeight = 480;
+		}
+
+		console.log('setupCanvasForVideo - Target canvas:', targetWidth, 'x', targetHeight);
+
+		if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+			console.log('setupCanvasForVideo - Resizing canvas from', canvas.width, 'x', canvas.height, 'to', targetWidth, 'x', targetHeight);
+			canvas.width = targetWidth;
+			canvas.height = targetHeight;
+
+			if (window.TopCodes && tangibleInstance) {
+				console.log('setupCanvasForVideo - Restarting TopCodes with new dimensions');
+				window.TopCodes.startStopVideoScan("video-canvas", tangibleInstance.mode);
+				setTimeout(() => {
+					if (window.TopCodes && tangibleInstance) {
+						window.TopCodes.startStopVideoScan("video-canvas", tangibleInstance.mode);
+					}
+				}, 150);
+			}
+		}
+	}, [tangibleInstance]);
+
 	const toggleCamera = (e: { stopPropagation: () => void; }) => {
 		e.stopPropagation();
 
@@ -96,6 +151,35 @@ export default function Home() {
 		tangibleInstance.cameraStatus = newCameraState;
 
 		if (window.TopCodes) {
+			if (newCameraState) {
+				const canvas = document.getElementById('video-canvas') as HTMLCanvasElement;
+				if (canvas) {
+					console.log('toggleCamera - Pre-setting canvas to 1280x720 before starting camera');
+					canvas.width = 1280;
+					canvas.height = 720;
+				}
+
+				videoMetadataHandled.current = false;
+
+				const handleMetadata = () => {
+					if (!videoMetadataHandled.current) {
+						videoMetadataHandled.current = true;
+						setupCanvasForVideo();
+					}
+				};
+
+				setTimeout(() => {
+					const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
+					if (video) {
+						if (video.readyState >= 1) {
+							handleMetadata();
+						} else {
+							video.addEventListener('loadedmetadata', handleMetadata, { once: true });
+						}
+					}
+				}, 200);
+			}
+
 			window.TopCodes.startStopVideoScan("video-canvas", tangibleInstance.mode);
 
 			if (!newCameraState) {

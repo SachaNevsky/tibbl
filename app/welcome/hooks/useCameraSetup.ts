@@ -28,7 +28,10 @@ export function useCameraSetup(cameraEnabled: boolean, readingOrderRotation: 0 |
 
             const videoWidth = video.videoWidth;
             const videoHeight = video.videoHeight;
+            const videoAspectRatio = videoWidth / videoHeight;
             const isVideoPortrait = videoHeight > videoWidth;
+
+            const is16by9 = Math.abs(videoAspectRatio - 16 / 9) < 0.1;
 
             let expectedCanvasWidth: number;
             let expectedCanvasHeight: number;
@@ -36,6 +39,9 @@ export function useCameraSetup(cameraEnabled: boolean, readingOrderRotation: 0 |
             if (isVideoPortrait) {
                 expectedCanvasWidth = videoWidth;
                 expectedCanvasHeight = videoHeight;
+            } else if (is16by9) {
+                expectedCanvasWidth = 1280;
+                expectedCanvasHeight = 720;
             } else {
                 expectedCanvasWidth = 640;
                 expectedCanvasHeight = 480;
@@ -88,8 +94,10 @@ export function useCameraSetup(cameraEnabled: boolean, readingOrderRotation: 0 |
 
                 const videoWidth = video.videoWidth || 640;
                 const videoHeight = video.videoHeight || 480;
+                const videoAspectRatio = videoWidth / videoHeight;
 
                 const isVideoPortrait = videoHeight > videoWidth;
+                const is16by9 = Math.abs(videoAspectRatio - 16 / 9) < 0.1;
 
                 let targetWidth: number;
                 let targetHeight: number;
@@ -97,6 +105,9 @@ export function useCameraSetup(cameraEnabled: boolean, readingOrderRotation: 0 |
                 if (isVideoPortrait) {
                     targetWidth = videoWidth;
                     targetHeight = videoHeight;
+                } else if (is16by9) {
+                    targetWidth = 1280;
+                    targetHeight = 720;
                 } else {
                     targetWidth = 640;
                     targetHeight = 480;
