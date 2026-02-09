@@ -10,9 +10,6 @@ interface CameraSectionProps {
 
 /**
  * Renders the camera section with video canvas for code tile detection.
- * Shows canvas when camera is enabled, hides it otherwise.
- * Includes a rotation button to rotate the entire canvas element 90 degrees clockwise via CSS.
- * Includes a reading order rotation button to change the order in which topcodes are read.
  * 
  * @param props - Component props
  * @param props.cameraEnabled - Whether the camera is currently enabled

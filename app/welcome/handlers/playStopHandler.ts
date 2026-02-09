@@ -12,8 +12,6 @@ let audioCheckInterval: NodeJS.Timeout | null = null;
 
 /**
  * Creates a handler function for the play/stop button.
- * Handles code execution from camera or text input, with validation.
- * Prevents queuing by cancelling any ongoing execution before starting a new one.
  * 
  * @param tangibleInstance - The Tangible instance for code execution
  * @param cameraEnabled - Whether camera scanning is enabled

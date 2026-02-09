@@ -87,8 +87,6 @@ export default function Home() {
 		const videoHeight = video.videoHeight;
 		const videoAspectRatio = videoWidth / videoHeight;
 
-		console.log('setupCanvasForVideo - Video dimensions:', videoWidth, 'x', videoHeight, 'Aspect ratio:', videoAspectRatio.toFixed(2));
-
 		const isVideoPortrait = videoHeight > videoWidth;
 		const is16by9 = Math.abs(videoAspectRatio - 16 / 9) < 0.1;
 		const is4by3 = Math.abs(videoAspectRatio - 4 / 3) < 0.1;
@@ -110,15 +108,11 @@ export default function Home() {
 			targetHeight = 480;
 		}
 
-		console.log('setupCanvasForVideo - Target canvas:', targetWidth, 'x', targetHeight);
-
 		if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
-			console.log('setupCanvasForVideo - Resizing canvas from', canvas.width, 'x', canvas.height, 'to', targetWidth, 'x', targetHeight);
 			canvas.width = targetWidth;
 			canvas.height = targetHeight;
 
 			if (window.TopCodes && tangibleInstance) {
-				console.log('setupCanvasForVideo - Restarting TopCodes with new dimensions');
 				window.TopCodes.startStopVideoScan("video-canvas", tangibleInstance.mode);
 				setTimeout(() => {
 					if (window.TopCodes && tangibleInstance) {
@@ -154,7 +148,6 @@ export default function Home() {
 			if (newCameraState) {
 				const canvas = document.getElementById('video-canvas') as HTMLCanvasElement;
 				if (canvas) {
-					console.log('toggleCamera - Pre-setting canvas to 1280x720 before starting camera');
 					canvas.width = 1280;
 					canvas.height = 720;
 				}

@@ -9,8 +9,6 @@ let isReading = false;
 
 /**
  * Creates a handler function for the read button.
- * Handles text-to-speech reading of code from camera or text input.
- * Prevents queuing by cancelling any ongoing speech before starting a new one.
  * 
  * @param tangibleInstance - The Tangible instance for speech synthesis
  * @param cameraEnabled - Whether camera scanning is enabled

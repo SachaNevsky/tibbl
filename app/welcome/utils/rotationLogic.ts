@@ -4,10 +4,6 @@ import type { TopCode } from "../types";
 
 /**
  * Comparator function to sort topcodes by position.
- * Sorts by y-coordinate ascending, then by x-coordinate descending (since video is mirrored).
- * Topcodes within 40 pixels vertically are considered to be on the same line.
- * 
- * This matches the sortTopCodeComparator function in tangible.js (lines 232-249).
  * 
  * @param a - First topcode to compare
  * @param b - Second topcode to compare
@@ -31,10 +27,6 @@ function sortTopCodeComparator(a: TopCode, b: TopCode): number {
 
 /**
  * Sort topcodes into a 2D grid based on their spatial coordinates.
- * Groups topcodes into rows where topcodes within 40 pixels vertically are on the same row.
- * Within each row, topcodes are sorted by x-coordinate descending (mirrored video).
- * 
- * This matches the sortTopCodesIntoGrid function in tangible.js (lines 201-223).
  * 
  * @param topCodes - Array of topcodes to organize into a grid
  * @returns 2D array where each inner array represents a row of topcodes
@@ -61,7 +53,6 @@ function sortTopCodesIntoGrid(topCodes: Array<TopCode>): Array<Array<TopCode>> {
 
 /**
  * Reorder topcodes from a grid based on the specified reading order rotation.
- * Flattens the 2D grid into a 1D array following the reading direction.
  * 
  * @param grid - 2D array of topcodes organized by spatial position
  * @param rotation - Rotation angle in degrees (0, 90, 180, or 270)
@@ -121,22 +112,45 @@ function reorderTopCodesForReading(grid: Array<Array<TopCode>>, rotation: 0 | 90
 }
 
 /**
- * Apply reading order rotation to an array of topcodes.
- * This is the main exported function used by both:
- * - useCameraSetup (for visual display with numbered overlays)
- * - Handler functions (for correct read/play order)
+ * Adjust the angle of a topcode based on reading order rotation.
  * 
- * The function first organizes topcodes into a spatial grid, then reorders them
- * according to the specified reading direction.
+ * @param topcode - The topcode to adjust
+ * @param rotation - Reading order rotation angle (0, 90, 180, or 270 degrees)
+ * @returns New topcode with adjusted angle
+ */
+function adjustTopCodeAngle(topcode: TopCode, rotation: 0 | 90 | 180 | 270): TopCode {
+    if (rotation === 0) {
+        return topcode;
+    }
+
+    const rotationRadians = (rotation * Math.PI) / 180;
+    let newAngle = topcode.angle - rotationRadians;
+
+    while (newAngle < 0) {
+        newAngle += 2 * Math.PI;
+    }
+    while (newAngle >= 2 * Math.PI) {
+        newAngle -= 2 * Math.PI;
+    }
+
+    return {
+        ...topcode,
+        angle: newAngle
+    };
+}
+
+/**
+ * Apply reading order rotation to an array of topcodes.
  * 
  * @param topcodes - Array of topcodes to reorder
  * @param rotation - Reading order rotation angle (0, 90, 180, or 270 degrees)
- * @returns Reordered array of topcodes following the specified reading direction
+ * @returns Reordered array of topcodes following the specified reading direction with adjusted angles
  */
 export function applyReadingOrderRotation(
     topcodes: TopCode[],
     rotation: 0 | 90 | 180 | 270
 ): TopCode[] {
     const grid = sortTopCodesIntoGrid([...topcodes]);
-    return reorderTopCodesForReading(grid, rotation);
+    const reordered = reorderTopCodesForReading(grid, rotation);
+    return reordered.map(topcode => adjustTopCodeAngle(topcode, rotation));
 }
