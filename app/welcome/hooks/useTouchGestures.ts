@@ -5,6 +5,8 @@ import type { TangibleInstance } from "../types";
 
 let ongoingCountdown = false;
 let countdownTimeouts: NodeJS.Timeout[] = [];
+let longPressTimeout: NodeJS.Timeout | null = null;
+let longPressActive = false;
 
 /**
  * Cancels any ongoing countdown and clears all timeout timers.
@@ -23,30 +25,45 @@ export function cancelCountdown(tangibleInstance?: TangibleInstance | null): voi
 }
 
 /**
- * Custom hook that detects three-finger touch gestures and triggers a callback.
+ * Cancels any ongoing long press timer.
+ */
+function cancelLongPress(): void {
+    if (longPressTimeout) {
+        clearTimeout(longPressTimeout);
+        longPressTimeout = null;
+    }
+    longPressActive = false;
+}
+
+/**
+ * Custom hook that detects three-finger touch gestures and long press gestures and triggers callbacks.
  * 
  * @param onTripleTouch - Callback function to execute on three-finger touch
+ * @param onLongPress - Callback function to execute on long press
  * @param cameraEnabled - Whether the camera is currently enabled
  * @param tangibleInstance - The Tangible instance for text-to-speech countdown
  * @param githubBase - The base GitHub URL for loading sound files
  * @param currentSoundSets - Array of current sound sets for each thread
  * @param preloadSoundSet - Function to reload sound sets
+ * @param setGestureAnnouncement - Function to set the gesture announcement for screen readers
  * @param dependencies - Dependency array for the effect
  */
 export function useTouchGestures(
     onTripleTouch: () => void,
+    onLongPress: () => void,
     cameraEnabled: boolean,
     tangibleInstance: TangibleInstance | null,
     githubBase: string,
     currentSoundSets: string[],
     preloadSoundSet: (instance: TangibleInstance, soundSet: string, threadIndex: number, githubBase: string) => void,
+    setGestureAnnouncement: (announcement: string) => void,
     dependencies: unknown[]
 ): void {
     useEffect(() => {
-        const handleTouch = (e: TouchEvent) => {
+        const handleTouchStart = (e: TouchEvent) => {
             if (e.touches.length === 3) {
                 e.preventDefault();
-
+                cancelLongPress();
                 cancelCountdown(tangibleInstance);
 
                 if (cameraEnabled && tangibleInstance) {
@@ -84,6 +101,7 @@ export function useTouchGestures(
                                         setTimeout(() => {
                                             ongoingCountdown = false;
                                             countdownTimeouts = [];
+                                            setGestureAnnouncement("Playing code gesture");
                                             onTripleTouch();
                                         }, 100);
                                     }, 1000);
@@ -100,15 +118,45 @@ export function useTouchGestures(
 
                     countdown();
                 } else {
+                    setGestureAnnouncement("Playing code gesture");
                     onTripleTouch();
                 }
+            } else if (e.touches.length === 1) {
+                cancelLongPress();
+                longPressActive = true;
+
+                longPressTimeout = setTimeout(() => {
+                    if (longPressActive) {
+                        e.preventDefault();
+                        setGestureAnnouncement("Reading code gesture");
+                        onLongPress();
+                        longPressActive = false;
+                    }
+                }, 750);
             }
         };
 
-        document.addEventListener("touchstart", handleTouch, { passive: false });
+        const handleTouchEnd = (e: TouchEvent) => {
+            if (e.touches.length === 0) {
+                cancelLongPress();
+            }
+        };
+
+        const handleTouchMove = (e: TouchEvent) => {
+            if (longPressActive && e.touches.length === 1) {
+                // placeholder for movement during long press
+            }
+        };
+
+        document.addEventListener("touchstart", handleTouchStart, { passive: false });
+        document.addEventListener("touchend", handleTouchEnd, { passive: false });
+        document.addEventListener("touchmove", handleTouchMove, { passive: false });
 
         return () => {
-            document.removeEventListener("touchstart", handleTouch);
+            document.removeEventListener("touchstart", handleTouchStart);
+            document.removeEventListener("touchend", handleTouchEnd);
+            document.removeEventListener("touchmove", handleTouchMove);
+            cancelLongPress();
             countdownTimeouts.forEach(timeout => clearTimeout(timeout));
             countdownTimeouts = [];
             ongoingCountdown = false;

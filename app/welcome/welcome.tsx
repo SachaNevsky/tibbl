@@ -39,6 +39,7 @@ export default function Home() {
 	const [rotation, setRotation] = useState<0 | 90 | 180 | 270>(0);
 	const [readingOrderRotation, setReadingOrderRotation] = useState<0 | 90 | 180 | 270>(0);
 	const [audioInitialized, setAudioInitialized] = useState<boolean>(false);
+	const [gestureAnnouncement, setGestureAnnouncement] = useState<string>("");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const lastClickTime = useRef<number>(0);
 	const videoMetadataHandled = useRef<boolean>(false);
@@ -73,7 +74,7 @@ export default function Home() {
 		readingOrderRotation
 	);
 
-	useTouchGestures(handlePlayStop, cameraEnabled, tangibleInstance, GITHUB_BASE, soundSets, preloadSoundSet, [tangibleInstance, cameraEnabled, codeText]);
+	useTouchGestures(handlePlayStop, handleRead, cameraEnabled, tangibleInstance, GITHUB_BASE, soundSets, preloadSoundSet, setGestureAnnouncement, [tangibleInstance, cameraEnabled, codeText]);
 
 	const setupCanvasForVideo = useCallback(() => {
 		const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
@@ -222,6 +223,19 @@ export default function Home() {
 
 	return (
 		<div className="app-container">
+			<div
+				role="status"
+				aria-live="assertive"
+				aria-atomic="true"
+				className="sr-only"
+			>
+				{gestureAnnouncement}
+			</div>
+
+			<div className="sr-only" role="region" aria-label="Touch gesture instructions">
+				Available touch gestures: Three-finger touch to play or stop code. Long press with one finger for one second to read or stop reading code.
+			</div>
+
 			<Header
 				cameraEnabled={cameraEnabled}
 				isPlaying={isPlaying}
