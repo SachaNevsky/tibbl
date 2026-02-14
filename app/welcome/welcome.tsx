@@ -1,6 +1,6 @@
 // ./app/welcome/welcome.tsx
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Header } from "./components/Header";
 import { CameraSection } from "./components/CameraSection";
 import { OutputSection } from "./components/OutputSection";

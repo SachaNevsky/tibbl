@@ -7,7 +7,7 @@ let ongoingCountdown = false;
 let countdownTimeouts: NodeJS.Timeout[] = [];
 let doubleTapTimeout: NodeJS.Timeout | null = null;
 let lastTapTime = 0;
-const DOUBLE_TAP_DELAY = 250; // milliseconds
+const DOUBLE_TAP_DELAY = 250;
 
 /**
  * Cancels any ongoing countdown and clears all timeout timers.
@@ -60,15 +60,17 @@ export function useTouchGestures(
     dependencies: unknown[]
 ): void {
     useEffect(() => {
-        const handleTouchStart = (e: TouchEvent) => {
+        const handleTouch = (e: TouchEvent) => {
             if (e.touches.length === 3) {
                 e.preventDefault();
+
+                cancelCountdown(tangibleInstance);
                 cancelDoubleTap();
                 lastTapTime = 0;
-                cancelCountdown(tangibleInstance);
 
                 if (cameraEnabled && tangibleInstance) {
                     ongoingCountdown = true;
+                    setGestureAnnouncement("Three finger touch detected");
 
                     const countdown = async () => {
                         const originalSoundSet = currentSoundSets[0];
@@ -102,7 +104,7 @@ export function useTouchGestures(
                                         setTimeout(() => {
                                             ongoingCountdown = false;
                                             countdownTimeouts = [];
-                                            setGestureAnnouncement("Playing code gesture");
+                                            setGestureAnnouncement("Playing code");
                                             onTripleTouch();
                                         }, 100);
                                     }, 1000);
@@ -119,10 +121,11 @@ export function useTouchGestures(
 
                     countdown();
                 } else {
-                    setGestureAnnouncement("Playing code gesture");
+                    setGestureAnnouncement("Three finger touch detected");
                     onTripleTouch();
                 }
-            } else if (e.touches.length === 1) {
+            }
+            else if (e.touches.length === 1) {
                 const currentTime = Date.now();
                 const timeSinceLastTap = currentTime - lastTapTime;
 
@@ -130,11 +133,10 @@ export function useTouchGestures(
                     e.preventDefault();
                     cancelDoubleTap();
                     lastTapTime = 0;
-                    setGestureAnnouncement("Reading code gesture");
+                    setGestureAnnouncement("Double tap detected");
                     onDoubleTap();
                 } else {
                     lastTapTime = currentTime;
-
                     cancelDoubleTap();
                     doubleTapTimeout = setTimeout(() => {
                         lastTapTime = 0;
@@ -143,10 +145,10 @@ export function useTouchGestures(
             }
         };
 
-        document.addEventListener("touchstart", handleTouchStart, { passive: false });
+        document.addEventListener("touchstart", handleTouch, { passive: false });
 
         return () => {
-            document.removeEventListener("touchstart", handleTouchStart);
+            document.removeEventListener("touchstart", handleTouch);
             cancelDoubleTap();
             countdownTimeouts.forEach(timeout => clearTimeout(timeout));
             countdownTimeouts = [];
