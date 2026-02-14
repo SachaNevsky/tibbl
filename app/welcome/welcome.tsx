@@ -231,11 +231,9 @@ export default function Home() {
 			>
 				{gestureAnnouncement}
 			</div>
-
 			<div className="sr-only" role="region" aria-label="Touch gesture instructions">
-				Available touch gestures: Three-finger touch to play or stop code. Long press with one finger for one second to read or stop reading code.
+				Available touch gestures: Three-finger touch to play or stop code. Double tap with one finger to read or stop reading code.
 			</div>
-
 			<Header
 				cameraEnabled={cameraEnabled}
 				isPlaying={isPlaying}

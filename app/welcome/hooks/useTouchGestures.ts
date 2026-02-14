@@ -5,8 +5,9 @@ import type { TangibleInstance } from "../types";
 
 let ongoingCountdown = false;
 let countdownTimeouts: NodeJS.Timeout[] = [];
-let longPressTimeout: NodeJS.Timeout | null = null;
-let longPressActive = false;
+let doubleTapTimeout: NodeJS.Timeout | null = null;
+let lastTapTime = 0;
+const DOUBLE_TAP_DELAY = 250; // milliseconds
 
 /**
  * Cancels any ongoing countdown and clears all timeout timers.
@@ -25,21 +26,20 @@ export function cancelCountdown(tangibleInstance?: TangibleInstance | null): voi
 }
 
 /**
- * Cancels any ongoing long press timer.
+ * Cancels any ongoing double tap timer.
  */
-function cancelLongPress(): void {
-    if (longPressTimeout) {
-        clearTimeout(longPressTimeout);
-        longPressTimeout = null;
+function cancelDoubleTap(): void {
+    if (doubleTapTimeout) {
+        clearTimeout(doubleTapTimeout);
+        doubleTapTimeout = null;
     }
-    longPressActive = false;
 }
 
 /**
- * Custom hook that detects three-finger touch gestures and long press gestures and triggers callbacks.
+ * Custom hook that detects three-finger touch gestures and double tap gestures and triggers callbacks.
  * 
  * @param onTripleTouch - Callback function to execute on three-finger touch
- * @param onLongPress - Callback function to execute on long press
+ * @param onDoubleTap - Callback function to execute on double tap
  * @param cameraEnabled - Whether the camera is currently enabled
  * @param tangibleInstance - The Tangible instance for text-to-speech countdown
  * @param githubBase - The base GitHub URL for loading sound files
@@ -50,7 +50,7 @@ function cancelLongPress(): void {
  */
 export function useTouchGestures(
     onTripleTouch: () => void,
-    onLongPress: () => void,
+    onDoubleTap: () => void,
     cameraEnabled: boolean,
     tangibleInstance: TangibleInstance | null,
     githubBase: string,
@@ -63,7 +63,8 @@ export function useTouchGestures(
         const handleTouchStart = (e: TouchEvent) => {
             if (e.touches.length === 3) {
                 e.preventDefault();
-                cancelLongPress();
+                cancelDoubleTap();
+                lastTapTime = 0;
                 cancelCountdown(tangibleInstance);
 
                 if (cameraEnabled && tangibleInstance) {
@@ -122,41 +123,31 @@ export function useTouchGestures(
                     onTripleTouch();
                 }
             } else if (e.touches.length === 1) {
-                cancelLongPress();
-                longPressActive = true;
+                const currentTime = Date.now();
+                const timeSinceLastTap = currentTime - lastTapTime;
 
-                longPressTimeout = setTimeout(() => {
-                    if (longPressActive) {
-                        e.preventDefault();
-                        setGestureAnnouncement("Reading code gesture");
-                        onLongPress();
-                        longPressActive = false;
-                    }
-                }, 750);
-            }
-        };
+                if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0) {
+                    e.preventDefault();
+                    cancelDoubleTap();
+                    lastTapTime = 0;
+                    setGestureAnnouncement("Reading code gesture");
+                    onDoubleTap();
+                } else {
+                    lastTapTime = currentTime;
 
-        const handleTouchEnd = (e: TouchEvent) => {
-            if (e.touches.length === 0) {
-                cancelLongPress();
-            }
-        };
-
-        const handleTouchMove = (e: TouchEvent) => {
-            if (longPressActive && e.touches.length === 1) {
-                // placeholder for movement during long press
+                    cancelDoubleTap();
+                    doubleTapTimeout = setTimeout(() => {
+                        lastTapTime = 0;
+                    }, DOUBLE_TAP_DELAY);
+                }
             }
         };
 
         document.addEventListener("touchstart", handleTouchStart, { passive: false });
-        document.addEventListener("touchend", handleTouchEnd, { passive: false });
-        document.addEventListener("touchmove", handleTouchMove, { passive: false });
 
         return () => {
             document.removeEventListener("touchstart", handleTouchStart);
-            document.removeEventListener("touchend", handleTouchEnd);
-            document.removeEventListener("touchmove", handleTouchMove);
-            cancelLongPress();
+            cancelDoubleTap();
             countdownTimeouts.forEach(timeout => clearTimeout(timeout));
             countdownTimeouts = [];
             ongoingCountdown = false;
