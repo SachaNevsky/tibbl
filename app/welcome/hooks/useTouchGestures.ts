@@ -3,6 +3,18 @@
 import { useEffect } from "react";
 import type { TangibleInstance } from "../types";
 
+/** Elements that should suppress global keyboard shortcuts when focused. */
+const FOCUSABLE_INPUT_TAGS = new Set(["INPUT", "SELECT", "TEXTAREA"]);
+
+function isFocusedOnInteractiveInput(): boolean {
+    const active = document.activeElement;
+    if (!active) return false;
+    return (
+        FOCUSABLE_INPUT_TAGS.has(active.tagName) ||
+        (active as HTMLElement).isContentEditable
+    );
+}
+
 let ongoingCountdown = false;
 let countdownTimeouts: NodeJS.Timeout[] = [];
 let doubleTapTimeout: NodeJS.Timeout | null = null;
@@ -36,10 +48,10 @@ function cancelDoubleTap(): void {
 }
 
 /**
- * Custom hook that detects three-finger touch gestures and double tap gestures and triggers callbacks.
- * 
- * @param onTripleTouch - Callback function to execute on three-finger touch
- * @param onDoubleTap - Callback function to execute on double tap
+ * Custom hook that detects touch gestures and keyboard shortcuts, then triggers the appropriate callbacks.
+ *
+ * @param onTripleTouch - Callback function to execute on three-finger touch / Enter key
+ * @param onDoubleTap - Callback function to execute on double tap / Space key
  * @param cameraEnabled - Whether the camera is currently enabled
  * @param tangibleInstance - The Tangible instance for text-to-speech countdown
  * @param githubBase - The base GitHub URL for loading sound files
@@ -147,8 +159,25 @@ export function useTouchGestures(
 
         document.addEventListener("touchstart", handleTouch, { passive: false });
 
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (isFocusedOnInteractiveInput()) return;
+
+            if (e.key === " ") {
+                e.preventDefault();
+                setGestureAnnouncement("Space key detected");
+                onDoubleTap();
+            } else if (e.key === "Enter") {
+                e.preventDefault();
+                setGestureAnnouncement("Enter key detected");
+                onTripleTouch();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+
         return () => {
             document.removeEventListener("touchstart", handleTouch);
+            document.removeEventListener("keydown", handleKeyDown);
             cancelDoubleTap();
             countdownTimeouts.forEach(timeout => clearTimeout(timeout));
             countdownTimeouts = [];
