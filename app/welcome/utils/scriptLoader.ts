@@ -13,6 +13,12 @@ export async function loadExternalScripts(
     githubBase: string,
     preloadCallback: (instance: TangibleInstance, soundSet: string, threadIndex: number) => void
 ): Promise<TangibleInstance | null> {
+    const iosUnmuteResponse = await fetch(`${githubBase}/assets/js/iosunmute.js`);
+    const iosUnmuteCode = await iosUnmuteResponse.text();
+    const iosUnmuteScript = document.createElement("script");
+    iosUnmuteScript.textContent = iosUnmuteCode + "\nwindow.unmute = unmute;";
+    document.head.appendChild(iosUnmuteScript);
+
     const howlerResponse = await fetch(`${githubBase}/assets/js/howler.js`);
     const howlerCode = await howlerResponse.text();
     const howlerScript = document.createElement("script");

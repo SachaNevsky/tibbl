@@ -11,6 +11,7 @@ interface OutputSectionProps {
     onCodeTextChange: (text: string) => void;
     onSoundSetChange: (threadIndex: number, soundSet: string) => void;
     placeholder: string;
+    readOnly?: boolean;
 }
 
 /**
@@ -35,7 +36,8 @@ export function OutputSection({
     soundSetOptions,
     onCodeTextChange,
     onSoundSetChange,
-    placeholder
+    placeholder,
+    readOnly = false
 }: OutputSectionProps) {
     return (
         <section
@@ -47,10 +49,12 @@ export function OutputSection({
                 <textarea
                     ref={textareaRef}
                     value={codeText}
-                    onChange={(e) => onCodeTextChange(e.target.value)}
+                    onChange={readOnly ? undefined : (e) => onCodeTextChange(e.target.value)}
+                    readOnly={readOnly}
                     className="output-textbox"
                     placeholder={placeholder}
                     aria-label="Code output text area"
+                    aria-readonly={readOnly}
                 />
             </div>
             <div className="dropdown-container">

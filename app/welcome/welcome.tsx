@@ -43,9 +43,16 @@ export default function Home() {
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const lastClickTime = useRef<number>(0);
 	const videoMetadataHandled = useRef<boolean>(false);
+	const unmuteDisposeRef = useRef<(() => void) | null>(null);
 
 	const preloadCallback = useCallback((instance: TangibleInstance, soundSet: string, threadIndex: number) => {
 		preloadSoundSet(instance, soundSet, threadIndex, GITHUB_BASE);
+	}, []);
+
+	useEffect(() => {
+		return () => {
+			unmuteDisposeRef.current?.();
+		};
 	}, []);
 
 	useCameraSetup(cameraEnabled, readingOrderRotation);
@@ -137,7 +144,8 @@ export default function Home() {
 		}
 
 		if (!audioInitialized) {
-			initializeAudioContext();
+			const dispose = initializeAudioContext();
+			unmuteDisposeRef.current = dispose;
 			setAudioInitialized(true);
 		}
 

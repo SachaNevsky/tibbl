@@ -70,7 +70,14 @@ declare global {
         Howl: new (config: HowlConfig) => HowlInstance;
         Howler: {
             _howls: HowlInstance[];
+            ctx: AudioContext;
+            masterGain: GainNode;
         };
+        unmute: (
+            context: AudioContext,
+            allowBackgroundPlayback?: boolean,
+            forceIOSBehavior?: boolean
+        ) => { dispose: () => void };
         TopCodes: {
             startStopVideoScan: (canvasId: string, mode: string) => void;
             setVideoFrameCallback: (

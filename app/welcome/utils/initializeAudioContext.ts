@@ -1,11 +1,15 @@
 // ./app/welcome/utils/initializeAudioContext.ts
 
 /**
- * Initialize audio context for iOS devices.
- * iOS requires user interaction before audio can play.
- * This function unlocks audio by playing silence.
+ * Initializes audio context for iOS devices and activates iosunmute.
+ * Must be called from within a user interaction event handler (e.g. a click).
+ *
+ * @returns A dispose function to clean up iosunmute on unmount, or null if
+ *          the environment doesn't support it.
  */
-export const initializeAudioContext = () => {
+export const initializeAudioContext = (): (() => void) | null => {
+    let disposeUnmute: (() => void) | null = null;
+
     if (typeof window !== 'undefined' && window.Howler) {
         try {
             const silentSound = new window.Howl({
@@ -13,6 +17,12 @@ export const initializeAudioContext = () => {
                 volume: 0,
                 onload: () => {
                     silentSound.play();
+
+                    if (window.unmute && window.Howler.ctx) {
+                        const controller = window.unmute(window.Howler.ctx);
+                        disposeUnmute = controller.dispose.bind(controller);
+                    }
+
                     silentSound.unload();
                 }
             });
@@ -31,4 +41,8 @@ export const initializeAudioContext = () => {
             console.error("Failed to initialize speech synthesis:", error);
         }
     }
+
+    return () => {
+        disposeUnmute?.();
+    };
 };
