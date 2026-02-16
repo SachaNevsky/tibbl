@@ -72,7 +72,8 @@ export function useTouchGestures(
     dependencies: unknown[]
 ): void {
     useEffect(() => {
-        const handleTouch = (e: TouchEvent) => {
+        const handleTouchStart = (e: TouchEvent) => {
+            // Handle three-finger gesture on touchstart (need to count fingers)
             if (e.touches.length === 3) {
                 e.preventDefault();
 
@@ -137,7 +138,11 @@ export function useTouchGestures(
                     onTripleTouch();
                 }
             }
-            else if (e.touches.length === 1) {
+        };
+
+        const handleTouchEnd = (e: TouchEvent) => {
+            // Handle double-tap gesture on touchend (after touch completes)
+            if (e.changedTouches.length === 1) {
                 const currentTime = Date.now();
                 const timeSinceLastTap = currentTime - lastTapTime;
 
@@ -157,7 +162,8 @@ export function useTouchGestures(
             }
         };
 
-        document.addEventListener("touchstart", handleTouch, { passive: false });
+        document.addEventListener("touchstart", handleTouchStart, { passive: false });
+        document.addEventListener("touchend", handleTouchEnd, { passive: false });
 
         const handleKeyDown = (e: KeyboardEvent) => {
             if (isFocusedOnInteractiveInput()) return;
@@ -176,7 +182,8 @@ export function useTouchGestures(
         document.addEventListener("keydown", handleKeyDown);
 
         return () => {
-            document.removeEventListener("touchstart", handleTouch);
+            document.removeEventListener("touchstart", handleTouchStart);
+            document.removeEventListener("touchend", handleTouchEnd);
             document.removeEventListener("keydown", handleKeyDown);
             cancelDoubleTap();
             countdownTimeouts.forEach(timeout => clearTimeout(timeout));
