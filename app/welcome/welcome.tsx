@@ -38,8 +38,14 @@ export default function Home() {
 	const [isPlaying, setIsPlaying] = useState<boolean>(false);
 	const [rotation, setRotation] = useState<0 | 90 | 180 | 270>(0);
 	const [readingOrderRotation, setReadingOrderRotation] = useState<0 | 90 | 180 | 270>(0);
-	const [audioInitialized, setAudioInitialized] = useState<boolean>(false);
+	const audioInitializedRef = useRef<boolean>(false);
 	const [gestureAnnouncement, setGestureAnnouncement] = useState<string>("");
+	const [debugLog, setDebugLog] = useState<string[]>([]);
+
+	const addDebug = (msg: string) => {
+		const time = new Date().toISOString().slice(11, 23);
+		setDebugLog(prev => [...prev.slice(-6), `${time} ${msg}`]);
+	};
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const lastClickTime = useRef<number>(0);
 	const videoMetadataHandled = useRef<boolean>(false);
@@ -81,7 +87,25 @@ export default function Home() {
 		readingOrderRotation
 	);
 
-	useTouchGestures(handlePlayStop, handleRead, cameraEnabled, tangibleInstance, GITHUB_BASE, soundSets, preloadSoundSet, setGestureAnnouncement, [tangibleInstance, cameraEnabled, codeText]);
+	const withAudioInit = (handler: () => void, label: string) => () => {
+		if (!audioInitializedRef.current) {
+			audioInitializedRef.current = true;
+			const dispose = initializeAudioContext();
+			unmuteDisposeRef.current = dispose;
+
+			const ctx = window.Howler?.ctx;
+			addDebug(`${label}: first call, ctx.state=${ctx?.state ?? 'null'}`);
+		}
+
+		const ctx = window.Howler?.ctx;
+		addDebug(`${label}: ctx.state=${ctx?.state ?? 'null'}`);
+		handler();
+	};
+
+	const handlePlayStopWithInit = withAudioInit(handlePlayStop, 'play');
+	const handleReadWithInit = withAudioInit(handleRead, 'read');
+
+	useTouchGestures(handlePlayStopWithInit, handleReadWithInit, cameraEnabled, tangibleInstance, GITHUB_BASE, soundSets, preloadSoundSet, setGestureAnnouncement, [tangibleInstance, cameraEnabled, codeText]);
 
 	const setupCanvasForVideo = useCallback(() => {
 		const video = document.getElementById('video-canvas-video') as HTMLVideoElement;
@@ -143,10 +167,12 @@ export default function Home() {
 			return;
 		}
 
-		if (!audioInitialized) {
+		if (!audioInitializedRef.current) {
+			audioInitializedRef.current = true;
 			const dispose = initializeAudioContext();
 			unmuteDisposeRef.current = dispose;
-			setAudioInitialized(true);
+			const ctx = window.Howler?.ctx;
+			addDebug(`camera: init, ctx.state=${ctx?.state ?? 'null'}`);
 		}
 
 		const newCameraState = !cameraEnabled;
@@ -249,9 +275,14 @@ export default function Home() {
 				isLoading={isLoading}
 				tangibleInstance={tangibleInstance}
 				onCameraToggle={toggleCamera}
-				onPlayStop={handlePlayStop}
-				onRead={handleRead}
+				onPlayStop={handlePlayStopWithInit}
+				onRead={handleReadWithInit}
 			/>
+			<div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "8px", padding: "4px 8px", background: "#111", color: "#0f0", fontFamily: "monospace", fontSize: "11px" }}>
+				{debugLog.map((entry, i) => (
+					<span key={i} style={{ whiteSpace: "nowrap" }}>{entry}</span>
+				))}
+			</div>
 			<CameraSection
 				cameraEnabled={cameraEnabled}
 				rotation={rotation}

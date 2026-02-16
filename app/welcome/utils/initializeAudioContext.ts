@@ -2,36 +2,39 @@
 
 /**
  * Initializes audio context for iOS devices and activates iosunmute.
- * Must be called from within a user interaction event handler (e.g. a click).
  *
- * @returns A dispose function to clean up iosunmute on unmount, or null if
- *          the environment doesn't support it.
+ * @returns A dispose function to clean up iosunmute on unmount.
  */
-export const initializeAudioContext = (): (() => void) | null => {
+export const initializeAudioContext = (): (() => void) => {
     let disposeUnmute: (() => void) | null = null;
 
-    if (typeof window !== 'undefined' && window.Howler) {
+    if (typeof window === 'undefined') {
+        return () => { };
+    }
+
+    if (window.Howler) {
         try {
-            const silentSound = new window.Howl({
-                src: ['data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA='],
-                volume: 0,
-                onload: () => {
-                    silentSound.play();
+            const ctx = window.Howler.ctx;
 
-                    if (window.unmute && window.Howler.ctx) {
-                        const controller = window.unmute(window.Howler.ctx);
-                        disposeUnmute = controller.dispose.bind(controller);
-                    }
+            if (ctx && ctx.state === 'suspended') {
+                ctx.resume().catch((error: unknown) => {
+                    console.error("Failed to resume AudioContext:", error);
+                });
+            }
 
-                    silentSound.unload();
-                }
-            });
+            if (window.unmute && ctx) {
+                const controller = window.unmute(ctx);
+                disposeUnmute = controller.dispose.bind(controller);
+
+                const syntheticEvent = new Event('touchend', { bubbles: true, cancelable: true });
+                window.dispatchEvent(syntheticEvent);
+            }
         } catch (error) {
             console.error("Failed to initialize audio context:", error);
         }
     }
 
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
+    if (window.speechSynthesis) {
         try {
             const utterance = new SpeechSynthesisUtterance('');
             utterance.volume = 0;
