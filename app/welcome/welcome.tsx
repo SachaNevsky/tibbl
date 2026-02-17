@@ -20,6 +20,7 @@ const GITHUB_BASE: string = "https://raw.githubusercontent.com/armbennett/tangib
 const SOUND_SETS: { value: string, label: string }[] = [
 	{ value: "Numbers", label: "Numbers" },
 	{ value: "MusicLoops1", label: "Music Loops 1" },
+	{ value: "MusicLoops2", label: "Music Loops 2" },
 	{ value: "Mystery", label: "Mystery" },
 	{ value: "Notifications", label: "Notifications" },
 	{ value: "OdeToJoy", label: "Ode to Joy" },
@@ -278,11 +279,6 @@ export default function Home() {
 				onPlayStop={handlePlayStopWithInit}
 				onRead={handleReadWithInit}
 			/>
-			<div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "8px", padding: "4px 8px", background: "#111", color: "#0f0", fontFamily: "monospace", fontSize: "11px" }}>
-				{debugLog.map((entry, i) => (
-					<span key={i} style={{ whiteSpace: "nowrap" }}>{entry}</span>
-				))}
-			</div>
 			<CameraSection
 				cameraEnabled={cameraEnabled}
 				rotation={rotation}
