@@ -168,11 +168,11 @@ export function useTouchGestures(
         const handleKeyDown = (e: KeyboardEvent) => {
             if (isFocusedOnInteractiveInput()) return;
 
-            if (e.key === " ") {
+            if (e.key === " " || e.key === "ArrowLeft") {
                 e.preventDefault();
                 setGestureAnnouncement("Space key detected");
                 onDoubleTap();
-            } else if (e.key === "Enter") {
+            } else if (e.key === "Enter" || e.key === "ArrowRight") {
                 e.preventDefault();
                 setGestureAnnouncement("Enter key detected");
                 onTripleTouch();
