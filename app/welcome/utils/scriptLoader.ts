@@ -7,11 +7,13 @@ import type { TangibleInstance } from "../types";
  * 
  * @param githubBase - The base GitHub URL for loading script files
  * @param preloadCallback - Callback function to preload sound sets after initialization
+ * @param soundSets - The sounds set by the user for the three threads
  * @returns Promise resolving to initialized TangibleInstance or null if initialization fails
  */
 export async function loadExternalScripts(
     githubBase: string,
-    preloadCallback: (instance: TangibleInstance, soundSet: string, threadIndex: number) => void
+    preloadCallback: (instance: TangibleInstance, soundSet: string, threadIndex: number) => void,
+    soundSets: string[]
 ): Promise<TangibleInstance | null> {
     const iosUnmuteResponse = await fetch(`${githubBase}/assets/js/iosunmute.js`);
     const iosUnmuteCode = await iosUnmuteResponse.text();
@@ -65,9 +67,9 @@ export async function loadExternalScripts(
         const instance = new window.Tangible();
         instance.setupTangible();
 
-        preloadCallback(instance, "Numbers", 0);
-        preloadCallback(instance, "Notifications", 1);
-        preloadCallback(instance, "Notifications", 2);
+        preloadCallback(instance, soundSets[0], 0);
+        preloadCallback(instance, soundSets[1], 1);
+        preloadCallback(instance, soundSets[2], 2);
 
         return instance;
     } else {

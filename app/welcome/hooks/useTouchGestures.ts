@@ -73,7 +73,6 @@ export function useTouchGestures(
 ): void {
     useEffect(() => {
         const handleTouchStart = (e: TouchEvent) => {
-            // Handle three-finger gesture on touchstart (need to count fingers)
             if (e.touches.length === 3) {
                 e.preventDefault();
 
@@ -141,7 +140,6 @@ export function useTouchGestures(
         };
 
         const handleTouchEnd = (e: TouchEvent) => {
-            // Handle double-tap gesture on touchend (after touch completes)
             if (e.changedTouches.length === 1) {
                 const currentTime = Date.now();
                 const timeSinceLastTap = currentTime - lastTapTime;
@@ -168,11 +166,11 @@ export function useTouchGestures(
         const handleKeyDown = (e: KeyboardEvent) => {
             if (isFocusedOnInteractiveInput()) return;
 
-            if (e.key === " " || e.key === "ArrowLeft") {
+            if (e.key === " " || e.key === "ArrowLeft" || e.key === "PageUp") {
                 e.preventDefault();
                 setGestureAnnouncement("Space key detected");
                 onDoubleTap();
-            } else if (e.key === "Enter" || e.key === "ArrowRight") {
+            } else if (e.key === "Enter" || e.key === "ArrowRight" || e.key === "PageDown") {
                 e.preventDefault();
                 setGestureAnnouncement("Enter key detected");
                 onTripleTouch();

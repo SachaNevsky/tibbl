@@ -27,13 +27,13 @@ const SOUND_SETS: { value: string, label: string }[] = [
 	{ value: "FurElise", label: "Fur Elise" }
 ];
 
-const PLACEHOLDER: string = "Thread 1\nLoop 4 times\nPlay 5\nEnd loop\nPlay 7\n\nThread 2\nDelay 4\nLoop 3 times\nPlay 8\nEnd loop";
+const PLACEHOLDER: string = "Thread 1\nPlay 7\nLoop 4 Times\nPlay 5\nEnd Loop\n\nThread 2\nDelay 6\nLoop 3 Times\nPlay 6\nEnd Loop";
 
 export default function Home() {
 	const [cameraEnabled, setCameraEnabled] = useState<boolean>(false);
 	const [codeText, setCodeText] = useState<string>("");
 	const [isLoading, setIsLoading] = useState<boolean>(true);
-	const [soundSets, setSoundSets] = useState<string[]>(["Numbers", "Notifications", "Notifications"]);
+	const [soundSets, setSoundSets] = useState<string[]>(["MusicLoops1", "MusicLoops1", "MusicLoops2"]);
 	const [tangibleInstance, setTangibleInstance] = useState<TangibleInstance | null>(null);
 	const [isReading, setIsReading] = useState<boolean>(false);
 	const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -41,12 +41,6 @@ export default function Home() {
 	const [readingOrderRotation, setReadingOrderRotation] = useState<0 | 90 | 180 | 270>(0);
 	const audioInitializedRef = useRef<boolean>(false);
 	const [gestureAnnouncement, setGestureAnnouncement] = useState<string>("");
-	const [debugLog, setDebugLog] = useState<string[]>([]);
-
-	const addDebug = (msg: string) => {
-		const time = new Date().toISOString().slice(11, 23);
-		setDebugLog(prev => [...prev.slice(-6), `${time} ${msg}`]);
-	};
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const lastClickTime = useRef<number>(0);
 	const videoMetadataHandled = useRef<boolean>(false);
@@ -64,7 +58,7 @@ export default function Home() {
 
 	useCameraSetup(cameraEnabled, readingOrderRotation);
 	useReadingState(tangibleInstance, isReading, setIsReading);
-	useScriptInitialization(GITHUB_BASE, setTangibleInstance, setIsLoading, preloadCallback);
+	useScriptInitialization(GITHUB_BASE, setTangibleInstance, setIsLoading, preloadCallback, soundSets);
 
 	const handlePlayStop = createPlayStopHandler(
 		tangibleInstance,
@@ -93,13 +87,8 @@ export default function Home() {
 			audioInitializedRef.current = true;
 			const dispose = initializeAudioContext();
 			unmuteDisposeRef.current = dispose;
-
-			const ctx = window.Howler?.ctx;
-			addDebug(`${label}: first call, ctx.state=${ctx?.state ?? 'null'}`);
 		}
 
-		const ctx = window.Howler?.ctx;
-		addDebug(`${label}: ctx.state=${ctx?.state ?? 'null'}`);
 		handler();
 	};
 
@@ -172,8 +161,6 @@ export default function Home() {
 			audioInitializedRef.current = true;
 			const dispose = initializeAudioContext();
 			unmuteDisposeRef.current = dispose;
-			const ctx = window.Howler?.ctx;
-			addDebug(`camera: init, ctx.state=${ctx?.state ?? 'null'}`);
 		}
 
 		const newCameraState = !cameraEnabled;

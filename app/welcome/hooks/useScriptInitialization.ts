@@ -12,17 +12,19 @@ import { loadExternalScripts } from "../utils/scriptLoader";
  * @param setTangibleInstance - State setter for the Tangible instance
  * @param setIsLoading - State setter for loading status
  * @param preloadCallback - Callback function to preload sound sets
+ * @param soundSets - The sounds set by the user for the three threads
  */
 export function useScriptInitialization(
     githubBase: string,
     setTangibleInstance: (instance: TangibleInstance | null) => void,
     setIsLoading: (loading: boolean) => void,
-    preloadCallback: (instance: TangibleInstance, soundSet: string, threadIndex: number) => void
+    preloadCallback: (instance: TangibleInstance, soundSet: string, threadIndex: number) => void,
+    soundSets: string[]
 ): void {
     useEffect(() => {
         const initializeScripts = async () => {
             try {
-                const instance = await loadExternalScripts(githubBase, preloadCallback);
+                const instance = await loadExternalScripts(githubBase, preloadCallback, soundSets);
                 setTangibleInstance(instance);
                 setIsLoading(false);
             } catch (error) {
