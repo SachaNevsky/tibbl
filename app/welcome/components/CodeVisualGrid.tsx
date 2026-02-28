@@ -1,7 +1,8 @@
 // ./app/welcome/components/CodeVisualGrid.tsx
 
 import { useMemo, useRef, useState, useEffect } from "react";
-import { parseCodeToGrid, getTileLabel, TILE_IMAGE_BASE } from "../utils/parseCodeToGrid";
+import { parseCodeToGrid, getTileLabel } from "../utils/parseCodeToGrid";
+import { GITHUB_BASE } from "../types";
 
 const GRID_COLS = 5;
 const GRID_ROWS = 5;
@@ -81,7 +82,7 @@ export function CodeVisualGrid({ codeText }: CodeVisualGridProps) {
                             >
                                 {cell && (
                                     <img
-                                        src={`${TILE_IMAGE_BASE}/assets/demo-files/tiles/${cell.type}.png`}
+                                        src={`${GITHUB_BASE}/assets/demo-files/tiles/${cell.type}.png`}
                                         alt={getTileLabel(cell)}
                                         className="visual-grid-tile-image"
                                     />

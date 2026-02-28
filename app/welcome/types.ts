@@ -1,5 +1,7 @@
 // ./app/welcome/types.ts
 
+export const GITHUB_BASE: string = 'https://raw.githubusercontent.com/armbennett/tangible-11ty/main';
+
 export interface HowlSprite {
     [key: string]: [number, number];
 }
@@ -90,4 +92,22 @@ declare global {
             _mediaStreams: Record<string, MediaStream | null>;
         };
     }
+}
+
+export interface TileInfo {
+    name: string;
+    command: string;
+    rotatable: boolean;
+    rotationValues?: string[];
+}
+
+export interface GridTile {
+    type: string;
+    rotation: number;
+}
+
+export interface ParseResult {
+    success: boolean;
+    grid: (GridTile | null)[][];
+    error?: string;
 }

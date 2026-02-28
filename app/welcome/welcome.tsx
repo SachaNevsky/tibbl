@@ -12,10 +12,8 @@ import { createPlayStopHandler } from "./handlers/playStopHandler";
 import { createReadHandler } from "./handlers/readHandler";
 import { preloadSoundSet } from "./utils/preloadSoundSet";
 import { initializeAudioContext } from "./utils/initializeAudioContext";
-import type { TangibleInstance } from "./types";
+import { type TangibleInstance, GITHUB_BASE } from "./types";
 import "./welcome.css";
-
-const GITHUB_BASE: string = "https://raw.githubusercontent.com/armbennett/tangible-11ty/main";
 
 const SOUND_SETS: { value: string, label: string }[] = [
 	{ value: "Numbers", label: "Numbers" },
