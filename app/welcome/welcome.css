@@ -210,6 +210,7 @@
     flex: 2;
     display: flex;
     min-width: 0;
+    position: relative;
 }
 
 .output-textbox {
@@ -449,4 +450,132 @@
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border-width: 0;
+}
+
+/* ─── View mode toggle & visual grid ─────────────────────────────────────── */
+
+.view-mode-toggle {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 1;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #215a7d;
+    border: 2px solid #215a7d;
+    border-radius: 50%;
+    width: clamp(2.5rem, 8vw, 3.5rem);
+    height: clamp(2.5rem, 8vw, 3.5rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    padding: 0;
+    transition: all 0.2s ease;
+}
+
+.view-mode-toggle:hover {
+    background-color: #215a7d;
+    color: #ffffff;
+}
+
+.view-mode-toggle:focus {
+    outline: 3px solid #215a7d;
+    outline-offset: 2px;
+}
+
+.view-mode-toggle:active {
+    transform: scale(0.95);
+}
+
+.visual-grid-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid #215a7d;
+    border-radius: 4px;
+    padding: clamp(0.75rem, 2vw, 1rem);
+    overflow: hidden;
+}
+
+.visual-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.visual-grid-row {
+    display: flex;
+    gap: 4px;
+}
+
+.visual-grid-cell {
+    border: 2px dashed #7aaec8;
+    border-radius: 4px;
+    background-color: #c8dde8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.visual-grid-cell--filled {
+    border-color: #215a7d;
+    background-color: #7aaec8;
+}
+
+.visual-grid-tile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 0.15rem;
+}
+
+.visual-grid-error {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background-color: #fde8e8;
+    border: 2px solid #c0392b;
+    border-radius: 4px;
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+    color: #7b1a1a;
+    flex-shrink: 0;
+}
+
+.visual-grid-error__title {
+    font-weight: 700;
+}
+
+@media (max-width: 465px) {
+    .view-mode-toggle {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.875rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .view-mode-toggle {
+        transition: none;
+    }
+
+    .view-mode-toggle:active {
+        transform: none;
+    }
+}
+
+@media (prefers-contrast: high) {
+    .view-mode-toggle {
+        border-width: 3px;
+    }
+
+    .visual-grid-cell {
+        border-width: 3px;
+    }
 }

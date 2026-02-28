@@ -1,0 +1,107 @@
+// ./app/welcome/components/CodeVisualGrid.tsx
+
+import { useMemo, useRef, useState, useEffect } from "react";
+import { parseCodeToGrid, getTileLabel, TILE_IMAGE_BASE } from "../utils/parseCodeToGrid";
+
+const GRID_COLS = 5;
+const GRID_ROWS = 5;
+const GRID_GAP_PX = 4;
+
+interface CodeVisualGridProps {
+    codeText: string;
+}
+
+/**
+ * Renders a 5×5 visual grid of TIBBL tiles parsed from the provided code text.
+ *
+ * Cell size is derived from the wrapper's measured dimensions so the grid always
+ * fits without scrolling. Empty cells are rendered as dimmed placeholders.
+ * If the code contains a parse error, an error message is displayed beneath the grid.
+ *
+ * @param props - Component props
+ * @param props.codeText - The TIBBL code string to parse and visualise
+ */
+export function CodeVisualGrid({ codeText }: CodeVisualGridProps) {
+    const { grid, error } = useMemo(() => parseCodeToGrid(codeText), [codeText]);
+
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const [cellSize, setCellSize] = useState<number>(0);
+
+    useEffect(() => {
+        const wrapper = wrapperRef.current;
+        if (!wrapper) return;
+
+        const observer = new ResizeObserver((entries) => {
+            const entry = entries[0];
+            if (!entry) return;
+
+            const { width, height } = entry.contentRect;
+            const sizeByWidth = (width - GRID_GAP_PX * (GRID_COLS - 1)) / GRID_COLS;
+            const sizeByHeight = (height - GRID_GAP_PX * (GRID_ROWS - 1)) / GRID_ROWS;
+            setCellSize(Math.floor(Math.min(sizeByWidth, sizeByHeight)));
+        });
+
+        observer.observe(wrapper);
+        return () => observer.disconnect();
+    }, []);
+
+    const cellStyle = cellSize > 0
+        ? { width: cellSize, height: cellSize, flex: 'none' }
+        : {};
+
+    return (
+        <div
+            className="visual-grid-wrapper"
+            role="region"
+            aria-label="Visual representation of TIBBL code"
+        >
+            <div
+                ref={wrapperRef}
+                className="visual-grid"
+                role="grid"
+                aria-label="5 by 5 tile grid"
+                aria-rowcount={GRID_ROWS}
+                aria-colcount={GRID_COLS}
+            >
+                {grid.map((row, rowIdx) => (
+                    <div
+                        key={rowIdx}
+                        className="visual-grid-row"
+                        role="row"
+                        aria-rowindex={rowIdx + 1}
+                    >
+                        {row.map((cell, colIdx) => (
+                            <div
+                                key={`${rowIdx}-${colIdx}`}
+                                className={`visual-grid-cell${cell ? ' visual-grid-cell--filled' : ''}`}
+                                role="gridcell"
+                                aria-colindex={colIdx + 1}
+                                aria-label={cell ? getTileLabel(cell) : 'Empty cell'}
+                                style={cellStyle}
+                            >
+                                {cell && (
+                                    <img
+                                        src={`${TILE_IMAGE_BASE}/assets/demo-files/tiles/${cell.type}.png`}
+                                        alt={getTileLabel(cell)}
+                                        className="visual-grid-tile-image"
+                                    />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                ))}
+            </div>
+
+            {error && (
+                <div
+                    className="visual-grid-error"
+                    role="alert"
+                    aria-live="polite"
+                >
+                    <span className="visual-grid-error__title">Error: </span>
+                    <span>{error}</span>
+                </div>
+            )}
+        </div>
+    );
+}
