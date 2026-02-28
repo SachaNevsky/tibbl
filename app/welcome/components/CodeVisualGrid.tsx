@@ -2,11 +2,26 @@
 
 import { useMemo, useRef, useState, useEffect } from "react";
 import { parseCodeToGrid, getTileLabel } from "../utils/parseCodeToGrid";
+import { TILE_INFO } from "../utils/tileInfo";
 import { GITHUB_BASE } from "../types";
 
 const GRID_COLS = 5;
 const GRID_ROWS = 5;
 const GRID_GAP_PX = 4;
+
+/**
+ * The rotation degree values based on the rotation index.
+ */
+const DIAL_ROTATION_DEG: Record<number, number> = {
+    0: 0,
+    1: 45,
+    2: 90,
+    3: 135,
+    4: 180,
+    5: 225,
+    6: 270,
+    7: 315,
+};
 
 interface CodeVisualGridProps {
     codeText: string;
@@ -14,10 +29,6 @@ interface CodeVisualGridProps {
 
 /**
  * Renders a 5×5 visual grid of TIBBL tiles parsed from the provided code text.
- *
- * Cell size is derived from the wrapper's measured dimensions so the grid always
- * fits without scrolling. Empty cells are rendered as dimmed placeholders.
- * If the code contains a parse error, an error message is displayed beneath the grid.
  *
  * @param props - Component props
  * @param props.codeText - The TIBBL code string to parse and visualise
@@ -47,7 +58,7 @@ export function CodeVisualGrid({ codeText }: CodeVisualGridProps) {
     }, []);
 
     const cellStyle = cellSize > 0
-        ? { width: cellSize, height: cellSize, flex: 'none' }
+        ? { width: cellSize, height: cellSize, flex: 'none' as const }
         : {};
 
     return (
@@ -71,28 +82,38 @@ export function CodeVisualGrid({ codeText }: CodeVisualGridProps) {
                         role="row"
                         aria-rowindex={rowIdx + 1}
                     >
-                        {row.map((cell, colIdx) => (
-                            <div
-                                key={`${rowIdx}-${colIdx}`}
-                                className={`visual-grid-cell${cell ? ' visual-grid-cell--filled' : ''}`}
-                                role="gridcell"
-                                aria-colindex={colIdx + 1}
-                                aria-label={cell ? getTileLabel(cell) : 'Empty cell'}
-                                style={cellStyle}
-                            >
-                                {cell && (
-                                    <img
-                                        src={`${GITHUB_BASE}/assets/demo-files/tiles/${cell.type}.png`}
-                                        alt={getTileLabel(cell)}
-                                        className="visual-grid-tile-image"
-                                    />
-                                )}
-                            </div>
-                        ))}
+                        {row.map((cell, colIdx) => {
+                            const isRotatable = cell ? TILE_INFO[cell.type]?.rotatable : false;
+                            const dialDeg = (cell && isRotatable)
+                                ? DIAL_ROTATION_DEG[cell.rotation] ?? 0
+                                : null;
+
+                            return (
+                                <div
+                                    key={`${rowIdx}-${colIdx}`}
+                                    className={`visual-grid-cell${cell ? ' visual-grid-cell--filled' : ''}`}
+                                    role="gridcell"
+                                    aria-colindex={colIdx + 1}
+                                    aria-label={cell ? getTileLabel(cell) : 'Empty cell'}
+                                    style={cellStyle}
+                                >
+                                    {cell && (
+                                        <img
+                                            src={`${GITHUB_BASE}/assets/demo-files/tiles/${cell.type}.png`}
+                                            alt={getTileLabel(cell)}
+                                            className="visual-grid-tile-image"
+                                            style={dialDeg !== null
+                                                ? { transform: `rotate(${dialDeg}deg)` }
+                                                : undefined
+                                            }
+                                        />
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 ))}
             </div>
-
             {error && (
                 <div
                     className="visual-grid-error"

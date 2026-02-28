@@ -93,7 +93,17 @@ export default function Home() {
 	const handlePlayStopWithInit = withAudioInit(handlePlayStop, 'play');
 	const handleReadWithInit = withAudioInit(handleRead, 'read');
 
-	useTouchGestures(handlePlayStopWithInit, handleReadWithInit, cameraEnabled, tangibleInstance, GITHUB_BASE, soundSets, preloadSoundSet, setGestureAnnouncement, [tangibleInstance, cameraEnabled, codeText]);
+	useTouchGestures(
+		handlePlayStopWithInit,
+		handleReadWithInit,
+		cameraEnabled,
+		tangibleInstance,
+		GITHUB_BASE,
+		soundSets,
+		preloadSoundSet,
+		setGestureAnnouncement,
+		[tangibleInstance, cameraEnabled, codeText]
+	);
 
 	const setupCanvasForVideo = useCallback(() => {
 		const video = document.getElementById('video-canvas-video') as HTMLVideoElement;

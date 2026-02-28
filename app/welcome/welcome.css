@@ -506,7 +506,8 @@
     width: 100%;
     height: 100%;
     align-items: center;
-    justify-content: center;
+    justify-content: start;
+    padding-top: clamp(2.5rem, 8vw, 3.5rem);
 }
 
 .visual-grid-row {

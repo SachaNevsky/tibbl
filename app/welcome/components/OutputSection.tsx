@@ -16,8 +16,7 @@ interface OutputSectionProps {
 }
 
 /**
- * Renders the output section with a toggle between a code textarea and a visual
- * tile grid, along with thread sound set selectors.
+ * Renders the output section with a toggle between a code textarea and a visual tile grid, along with thread sound set selectors.
  *
  * @param props - Component props
  * @param props.cameraEnabled - Whether the camera is currently enabled
