@@ -38,6 +38,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              var p = new URLSearchParams(window.location.search).get('p');
+              if (p) {
+                window.history.replaceState(null, '', '/tibbl' + p);
+              }
+            })();
+          `
+        }} />
         <Meta />
         <Links />
       </head>

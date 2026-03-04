@@ -15,7 +15,7 @@ export default function Home() {
 				<p>Welcome to <b>TIBBLE</b>, a tangible programming tool design to be inclusive to learners with visual impairments.</p>
 				<div className="button-container">
 					<a className="tibbl-button" href="/tibbl/tibbl-app" aria-label="Button to launch TIBBL">
-						Lunch
+						Launch
 						<img
 							src="https://armbennett.github.io/tangible-11ty/assets/img/tibbl-logo.png"
 							alt="Application logo"
