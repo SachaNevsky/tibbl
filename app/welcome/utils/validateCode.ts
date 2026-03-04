@@ -20,7 +20,7 @@ export function validateCode(codeText: string): { valid: boolean; error?: string
         }
         else if (line.startsWith('end loop') || line.startsWith('endloop')) {
             if (stack.length === 0 || stack[stack.length - 1].type !== 'loop') {
-                return { valid: false, error: `Unexpected end loop at position ${i + 1}` };
+                return { valid: false, error: `Unexpected end loop tile at position ${i + 1}` };
             }
             stack.pop();
         }
@@ -29,7 +29,7 @@ export function validateCode(codeText: string): { valid: boolean; error?: string
         }
         else if (line.startsWith('end if') || line.startsWith('endif')) {
             if (stack.length === 0 || stack[stack.length - 1].type !== 'if') {
-                return { valid: false, error: `Unexpected end if at position ${i + 1}` };
+                return { valid: false, error: `Unexpected end if tile at position ${i + 1}` };
             }
             stack.pop();
         }
@@ -38,7 +38,7 @@ export function validateCode(codeText: string): { valid: boolean; error?: string
         }
         else if (line.startsWith('end function') || line.startsWith('endfunction')) {
             if (stack.length === 0 || stack[stack.length - 1].type !== 'function') {
-                return { valid: false, error: `Unexpected end function at position ${i + 1}` };
+                return { valid: false, error: `Unexpected end function tile at position ${i + 1}` };
             }
             stack.pop();
         }
@@ -46,7 +46,7 @@ export function validateCode(codeText: string): { valid: boolean; error?: string
             variableSet = true;
         }
         else if ((line.startsWith('play x') || line.startsWith('if x')) && !variableSet) {
-            return { valid: false, error: `Variable used at ${i + 1} without being set.` };
+            return { valid: false, error: `The variable used at position ${i + 1} has not being set.` };
         }
     }
 
@@ -54,7 +54,7 @@ export function validateCode(codeText: string): { valid: boolean; error?: string
         const unclosed = stack[stack.length - 1];
         return {
             valid: false,
-            error: `Missing end tile for ${unclosed.type} in position ${unclosed.index}.`
+            error: `The ${unclosed.type} which starts at tile ${unclosed.index} has not been closed.`
         };
     }
 
