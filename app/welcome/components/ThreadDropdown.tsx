@@ -30,7 +30,6 @@ export function ThreadDropdown({ threadNumber, value, onChange, soundSets }: Thr
                 className="dropdown"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                aria-label={`Select ${threadLabel} sound options`}
             >
                 {soundSets.map((set) => (
                     <option key={set.value} value={set.value}>

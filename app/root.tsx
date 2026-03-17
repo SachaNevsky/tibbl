@@ -48,6 +48,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             })();
           `
         }} />
+        <title>TIBBL</title>
         <Meta />
         <Links />
       </head>
