@@ -3,7 +3,7 @@ import "./home.css"
 
 export function meta({ }: Route.MetaArgs) {
 	return [
-		{ title: "TIBBL" },
+		{ title: "TIBBL – Tangible Inclusive Coding" },
 		{ name: "description", content: "TIBBL web application" },
 	];
 }
@@ -49,19 +49,127 @@ export default function Home() {
 				<div className="two-column">
 					<div className="team-container">
 						<h2>Project Team:</h2>
-						<p><a href="https://www.kcl.ac.uk/people/alex-hadwen-bennett" target="_blank">Alex Hadwen-Bennett</a> (Principal Investigator)</p>
-						<p><a href="https://www.kcl.ac.uk/people/timothy-neate" target="_blank">Timothy Neate</a> (Co-Investigator)</p>
-						<p><a href="https://kdl.kcl.ac.uk/about/people/samantha-callaghan/" target="_blank">Samantha Callaghan</a> (Research Software Analyst)</p>
-						<p><a href="https://kdl.kcl.ac.uk/about/people/elliott-hall/" target="_blank">Elliott Hall</a> (Senior Research Software Engineer)</p>
-						<p><a href="https://www.kcl.ac.uk/people/xinyun-he" target="_blank">Xinyun He</a> (Research Assistant - Inclusive Education)</p>
-						<p><a href="https://kdl.kcl.ac.uk/about/people/zihao-lu/" target="_blank">Zihao Lu</a> (Research Software UI/UX Designer)</p>
-						<p><a href="https://www.kcl.ac.uk/people/alexandre-nevsky" target="_blank">Alexandre Nevsky</a> (Research Assistant - Inclusive HCI)</p>
-						<p><a href="https://kdl.kcl.ac.uk/about/people/tiffany-ong/" target="_blank">Tiffany Ong</a> (Senior Research Software UI/UX Designer)</p>
+						<p>
+							<a
+								href="https://www.kcl.ac.uk/people/alex-hadwen-bennett"
+								target="_blank"
+								rel="noreferrer"
+								aria-label="Alex Hadwen-Bennett (opens in new tab)"
+							>
+								Alex Hadwen-Bennett
+							</a>{" "}
+							(Principal Investigator)
+						</p>
+						<p>
+							<a
+								href="https://www.kcl.ac.uk/people/timothy-neate"
+								target="_blank"
+								rel="noreferrer"
+								aria-label="Timothy Neate (opens in new tab)"
+							>
+								Timothy Neate
+							</a>{" "}
+							(Co-Investigator)
+						</p>
+						<p>
+							<a
+								href="https://kdl.kcl.ac.uk/about/people/samantha-callaghan/"
+								target="_blank"
+								rel="noreferrer"
+								aria-label="Samantha Callaghan (opens in new tab)"
+							>
+								Samantha Callaghan
+							</a>{" "}
+							(Research Software Analyst)
+						</p>
+						<p>
+							<a
+								href="https://kdl.kcl.ac.uk/about/people/elliott-hall/"
+								target="_blank"
+								rel="noreferrer"
+								aria-label="Elliott Hall (opens in new tab)"
+							>
+								Elliott Hall
+							</a>{" "}
+							(Senior Research Software Engineer)
+						</p>
+						<p>
+							<a
+								href="https://www.kcl.ac.uk/people/xinyun-he"
+								target="_blank"
+								rel="noreferrer"
+								aria-label="Xinyun He (opens in new tab)"
+							>
+								Xinyun He
+							</a>{" "}
+							(Research Assistant - Inclusive Education)
+						</p>
+						<p>
+							<a
+								href="https://kdl.kcl.ac.uk/about/people/zihao-lu/"
+								target="_blank"
+								rel="noreferrer"
+								aria-label="Zihao Lu (opens in new tab)"
+							>
+								Zihao Lu
+							</a>{" "}
+							(Research Software UI/UX Designer)
+						</p>
+						<p>
+							<a
+								href="https://www.kcl.ac.uk/people/alexandre-nevsky"
+								target="_blank"
+								rel="noreferrer"
+								aria-label="Alexandre Nevsky (opens in new tab)"
+							>
+								Alexandre Nevsky
+							</a>{" "}
+							(Research Assistant - Inclusive HCI)
+						</p>
+						<p>
+							<a
+								href="https://kdl.kcl.ac.uk/about/people/tiffany-ong/"
+								target="_blank"
+								rel="noreferrer"
+								aria-label="Tiffany Ong (opens in new tab)"
+							>
+								Tiffany Ong
+							</a>{" "}
+							(Senior Research Software UI/UX Designer)
+						</p>
 					</div>
 
 					<div className="ack-container">
 						<h2>Acknowledgments:</h2>
-						<p>This project was made possible through funding from a <a href="https://www.kcl.ac.uk/digital-futures" target="_black">Digital Futures Institute</a> Fellowship, the <a href="https://www.kcl.ac.uk/ecs" target="_black">School of Education, Communication and Society</a> at King's College London and through the support of the <a href="https://kdl.kcl.ac.uk/" target="_blank">King's Digital Lab</a>.</p>
+						<p>
+							This project was made possible through funding from a{" "}
+							<a
+								href="https://www.kcl.ac.uk/digital-futures"
+								target="_blank"
+								rel="noreferrer"
+								aria-label="Digital Futures Institute (opens in new tab)"
+							>
+								Digital Futures Institute
+							</a>{" "}
+							Fellowship, the{" "}
+							<a
+								href="https://www.kcl.ac.uk/ecs"
+								target="_blank"
+								rel="noreferrer"
+								aria-label="School of Education, Communication and Society (opens in new tab)"
+							>
+								School of Education, Communication and Society
+							</a>{" "}
+							at King's College London and through the support of the{" "}
+							<a
+								href="https://kdl.kcl.ac.uk/"
+								target="_blank"
+								rel="noreferrer"
+								aria-label="King's Digital Lab (opens in new tab)"
+							>
+								King's Digital Lab
+							</a>.
+						</p>
 						<p>We are also incredibly grateful for the invaluable contributions made by the research participants as well as Carlos De La Puente Cuya, Ying Lau and Bryn Roberts.</p>
 						<div className="ack-logos">
 							<img className="logo" src="DFI_logo.png" alt="Digital Futures Institute Logo" />

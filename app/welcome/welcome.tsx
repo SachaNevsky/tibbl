@@ -22,7 +22,7 @@ const SOUND_SETS: { value: string, label: string }[] = [
 	{ value: "Mystery", label: "Mystery" },
 	{ value: "Notifications", label: "Notifications" },
 	{ value: "OdeToJoy", label: "Ode to Joy" },
-	{ value: "FurElise", label: "Fur Elise" }
+	{ value: "AnimalSounds", label: "Animal Sounds" }
 ];
 
 const PLACEHOLDER: string = "Thread 1\nPlay 7\nLoop 4 Times\nPlay 5\nEnd Loop\n\nThread 2\nDelay 6\nLoop 3 Times\nPlay 6\nEnd Loop";
