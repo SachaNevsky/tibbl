@@ -22,7 +22,7 @@ export function ThreadDropdown({ threadNumber, value, onChange, soundSets }: Thr
 
     return (
         <div className="dropdown-group">
-            <label htmlFor={threadId} className="dropdown-label">
+            <label id={`${threadId}-label`} htmlFor={threadId} className="dropdown-label">
                 {threadLabel}
             </label>
             <select
@@ -30,6 +30,7 @@ export function ThreadDropdown({ threadNumber, value, onChange, soundSets }: Thr
                 className="dropdown"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
+                aria-labelledby={`${threadId}-label`}
             >
                 {soundSets.map((set) => (
                     <option key={set.value} value={set.value}>
