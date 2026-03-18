@@ -34,7 +34,7 @@ export default function Home() {
 			<main className="main-content">
 				<div className="hero-and-buttons">
 					<div className="hero-container">
-						<img src="hero.png" alt="TIBBL hero image" className="hero-image" />
+						<img src="hero.jpg" alt="TIBBL hero image" className="hero-image" />
 					</div>
 					<div className="button-container">
 						<a className="tibbl-button" href="/tibbl/tibbl-app" aria-label="Launch TIBBL">
